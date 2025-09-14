@@ -32,7 +32,7 @@
 <h2>Informações Adicionais 📌</h2>
 <ul>
     <li><b>👨‍🏫Professor:</b> Max do Val Machado</li>
-    <li><b>Período:</b> 2º/2025</li>
+    <li><b>📍Período:</b> 2º/2025</li>
 </ul>
 
 <p>Espero que este material seja útil para estudantes que buscam aprofundar seus conhecimentos em algoritmos e estruturas de dados.</p>

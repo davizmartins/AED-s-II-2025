@@ -10,9 +10,7 @@ public class inversaoString {
     }
     //função que adiciona os caracteres de tras pra fremte e concatena a uma nova string
     public static String inversorRecursivo(String s, int i, String r){
-        if(i==0){
-            r+=s.charAt(i);
-            r+='\0';
+        if(i<0){
             return r;
         }
         char c;

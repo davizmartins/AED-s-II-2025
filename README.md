@@ -1,10 +1,10 @@
-<h1>AEDs II - Algoritmos e Estruturas de Dados II</h1>
+<h1>AEDs II - Algoritmos e Estruturas de Dados II 💻</h1>
 <p>Neste repositório você encontrará todo o material de estudo, atividades e projetos desenvolvidos para a disciplina de Algoritmos e Estruturas de Dados II, lecionada na PUC-MG.</p>
 <p>A disciplina aprofunda o estudo de estruturas de dados e algoritmos complexos, com foco em sua implementação e análise de eficiência. O conteúdo é voltado para a utilização de linguagens C-LIKE, porém com maior presença de Java e C.</p>
 
-<hr>
 
-<h2>Conteúdo de AED's II</h2>
+
+<h2>Conteúdo de AED's II 📒</h2>
 <h3>1. Estruturas de Dados Avançadas</h3>
 <ul>
     <li><b>Árvores:</b> Implementações e análises de árvores binárias de busca (BST) e balanceadas (AVL, B-trees).</li>
@@ -27,11 +27,11 @@
     <li><b>Divisão e Conquista:</b> Estratégia para quebrar um problema em subproblemas menores.</li>
 </ul>
 
-<hr>
 
-<h2>Informações Adicionais</h2>
+
+<h2>Informações Adicionais 📌</h2>
 <ul>
-    <li><b>Professor:</b> Max do Val Machado</li>
+    <li><b>👨‍🏫Professor:</b> Max do Val Machado</li>
     <li><b>Período:</b> 2º/2025</li>
 </ul>
 

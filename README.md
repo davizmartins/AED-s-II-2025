@@ -36,4 +36,4 @@
 </ul>
 
 <p>Espero que este material seja útil para estudantes que buscam realizar uma boa disciplina de AED's II.</p>
-<p>CORAGEM !!!, facíl não vai ser</p>
+<p>CORAGEM !!!, facíl não vai ser.</p>

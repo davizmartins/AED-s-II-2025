@@ -35,4 +35,5 @@
     <li><b>📍Período:</b> 2º/2025</li>
 </ul>
 
-<p>Espero que este material seja útil para estudantes que buscam aprofundar seus conhecimentos em algoritmos e estruturas de dados.</p>
+<p>Espero que este material seja útil para estudantes que buscam realizar uma boa disciplina de AED's II.</p>
+<p>CORAGEM !!!, facíl não vai ser</p>

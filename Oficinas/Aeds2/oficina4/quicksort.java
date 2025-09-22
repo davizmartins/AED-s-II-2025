@@ -11,7 +11,7 @@ public class quicksort{
 
     public static void quickSort(int low, int high) {
         int i=low, j=high; 
-        int pivo=arr[(high-low)/2];
+        int pivo=arr[(high+low)/2];
         System.out.println(low+" "+ high); 
         while(i<=j){
             //comparacoes++;

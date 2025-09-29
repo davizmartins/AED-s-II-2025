@@ -6,7 +6,7 @@ public class quickpivoteste {
     public static long movimentos = 0;
     public static long comparacoes = 0;
 
-    public static void resetCounters() {
+    public static void resetar() {
         movimentos = 0;
         comparacoes = 0;
     }
@@ -21,10 +21,10 @@ public class quickpivoteste {
         int tmp = arr[i];
         arr[i] = arr[j];
         arr[j] = tmp;
-        movimentos += 3; // cada troca = 3 atribuições
+        movimentos += 3;
     }
 
-    // ---------- QUICK SORTS ----------
+    //QuicksSortes
     public static void quickSortFirst(int esq, int dir, int[] arr) {
         int i = esq, j = dir;
         int pivo = arr[esq];
@@ -134,11 +134,10 @@ public class quickpivoteste {
         if (esq < j) quickSortMedianofThree(esq, j, arr);
         if (i < dir) quickSortMedianofThree(i, dir, arr);
     }
-
-    // ---------- TESTES ----------
-    public static void runTest(String nome, int[] original, int tipo) {
+//TESTES
+    public static void TESTES(String estrategia, String tipoArray, int[] original, int tipo) {
         int[] arr = Arrays.copyOf(original, original.length);
-        resetCounters();
+        resetar();
         long start = System.nanoTime();
 
         switch (tipo) {
@@ -149,30 +148,45 @@ public class quickpivoteste {
         }
 
         long end = System.nanoTime();
-        System.out.printf("%-18s | %7d | %12d | %12d | %12d%n",
-                nome, arr.length, (end - start), comparacoes, movimentos);
+        System.out.printf("%-18s | %-12s | %7d | %12d | %12d | %12d%n",
+                estrategia, tipoArray, arr.length, (end - start), comparacoes, movimentos);
     }
 
     public static void main(String[] args) {
         int[] tamanhos = {100, 1000, 10000};
         Random rand = new Random();
 
-        System.out.printf("%-18s | %7s | %12s | %12s | %12s%n",
-                "Estratégia", "Tamanho", "Tempo(ns)", "Comparações", "Movimentos");
-        System.out.println("-------------------------------------------------------------------------------");
+        System.out.printf("%-18s | %-12s | %7s | %12s | %12s | %12s%n",
+                "Estratégia", "Tipo Array", "Tamanho", "Tempo(ns)", "Comparações", "Movimentos");
+        System.out.println("------------------------------------------------------------------------------------------------");
 
         for (int n : tamanhos) {
-            int[] base = new int[n];
-            crescente(base);
-            for (int i = 0; i < base.length; i++) {
-                swap(i, rand.nextInt(base.length), base); // embaralha
+            int[] ordenado = new int[n];
+            crescente(ordenado);
+
+            int[] semi = Arrays.copyOf(ordenado, ordenado.length);
+            for (int i = 0; i < semi.length / 10; i++) { // embaralha 10%
+                swap(rand.nextInt(semi.length), rand.nextInt(semi.length), semi);
             }
 
-            runTest("Primeiro pivô", base, 1);
-            runTest("Último pivô", base, 2);
-            runTest("Pivô aleatório", base, 3);
-            runTest("Mediana de três", base, 4);
+            int[] aleatorio = Arrays.copyOf(ordenado, ordenado.length);
+            for (int i = 0; i < aleatorio.length; i++) {
+                swap(i, rand.nextInt(aleatorio.length), aleatorio);
+            }
+
+            for (int tipo = 1; tipo <= 4; tipo++) {
+                String nome = switch (tipo) {
+                    case 1 -> "Primeiro pivô";
+                    case 2 -> "Último pivô";
+                    case 3 -> "Pivô aleatório";
+                    case 4 -> "Mediana de três";
+                    default -> "Desconhecido";
+                };
+
+                TESTES(nome, "Ordenado", ordenado, tipo);
+                TESTES(nome, "Semi-ordenado", semi, tipo);
+                TESTES(nome, "Aleatório", aleatorio, tipo);
+            }
         }
     }
 }
-

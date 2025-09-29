@@ -6,14 +6,14 @@ public class quickpivo{
     public static int movimentos=0;
     public static int comparacoes=0;
     public static void crescente(int[] array) {
-		for (int i = 0; i < n; i++) {
+		for (int i = 0; i < array.length; i++) {
 			array[i] = i;
 		}
 	}
-    public static void swap(int i, int j) {
-        int tmp = array[i];
-        array[i] = array[j];
-        array[j] = tmp;
+    public static void swap(int i, int j, int[] arr) {
+        int tmp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = tmp;
     }
     public static void quickSortFirst(int esq, int dir, int[] arr){
         int i=esq, j=dir; 
@@ -30,16 +30,16 @@ public class quickpivo{
                 j--;
             }
             if(i<=j){
-                swap(i, j);
+                swap(i, j, arr);
                 //movimentos+=3;
                 i++; j--;
             }
         }
         if(esq<j){
-            quickSortFirst(esq, j);
+            quickSortFirst(esq, j, arr);
         }
         if(i<dir){
-            quickSortFirst(i, dir);
+            quickSortFirst(i, dir, arr);
         }
     
     }
@@ -58,21 +58,21 @@ public class quickpivo{
                 j--;
             }
             if(i<=j){
-                swap(i, j);
+                swap(i, j, arr);
                 //movimentos+=3;
                 i++; j--;
             }
         }
         if(esq<j){
-            quickSortLast(esq, j);
+            quickSortLast(esq, j, arr);
         }
         if(i<dir){
-            quickSortLast(i, dir);
+            quickSortLast(i, dir, arr);
         }
     }
     public static void quickSortRandom(int esq, int dir, int[] arr){
         int i=esq, j=dir; 
-        Random rando=new Randow();
+        Random rando=new Random();
         int rand=rando.nextInt(dir- esq +1)+ esq;
         int pivo=arr[rand];
         while(i<=j){
@@ -87,21 +87,21 @@ public class quickpivo{
                 j--;
             }
             if(i<=j){
-                swap(i, j);
+                swap(i, j, arr);
                 //movimentos+=3;
                 i++; j--;
             }
         }
         if(esq<j){
-            quickSortRandom(esq, j);
+            quickSortRandom(esq, j, arr);
         }
         if(i<dir){
-            quickSortRandom(i, dir);
+            quickSortRandom(i, dir, arr);
         }
     }
     public static void quickSortMedianofThree(int esq, int dir, int[] arr ){
         int i=esq, j=dir; 
-        int pivo;
+        int pivo=arr[(esq+dir)/2];
         int pivo1=arr[esq];
         int pivo2=arr[(esq+dir)/2];
         int pivo3=arr[dir];
@@ -124,16 +124,16 @@ public class quickpivo{
                 j--;
             }
             if(i<=j){
-                swap(i, j);
+                swap(i, j , arr);
                 //movimentos+=3;
                 i++; j--;
             }
         }
         if(esq<j){
-            quickSortMedianofThree(esq, j);
+            quickSortMedianofThree(esq, j, arr);
         }
         if(i<dir){
-            quickSortMedianofThree(i, dir);
+            quickSortMedianofThree(i, dir, arr);
         }
     }
     
@@ -145,15 +145,15 @@ public class quickpivo{
         int[] arr3= new int[100000];
         crescente(arr1);	
 		for (int i = 0; i < arr1.length; i++) {
-			swap(i, Math.abs(rand.nextInt()) % n);
+			swap(i, Math.abs(rand.nextInt()) % arr1.length, arr1);
 		}
         crescente(arr2);	
 		for (int i = 0; i < arr2.length; i++) {
-			swap(i, Math.abs(rand.nextInt()) % n);
+			swap(i, Math.abs(rand.nextInt()) % arr2.length, arr2);
 		}
         crescente(arr3);	
 		for (int i = 0; i < arr3.length; i++) {
-			swap(i, Math.abs(rand.nextInt()) % n);
+			swap(i, Math.abs(rand.nextInt()) % arr3.length, arr3);
 		}
 
     }

@@ -348,8 +348,6 @@ public class tp04 {
 
         // --- ETAPA 3: Loop para ler entradas do teclado (VERSÃO CORRIGIDA) ---
         Scanner ent = new Scanner(System.in);
-        System.out.println("Arquivo carregado. Digite um ID para buscar ou 'FIM' para sair.");
-
         while (ent.hasNextLine()) { // Usar hasNextLine() é mais seguro para ler de arquivos
             String entrada = ent.nextLine();
 
@@ -374,15 +372,12 @@ public class tp04 {
                         break;
                     }
                 }
-                if (!encontrou) {
-                    System.out.println("ID nao encontrado.");
-                }
+                
             } catch (NumberFormatException e) {
                 System.out.println("Entrada invalida (nao e um numero nem 'FIM'): " + entrada);
             }
         }
         ent.close();
-        System.out.println("Programa finalizado.");
     }
 
 }

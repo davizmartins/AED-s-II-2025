@@ -320,64 +320,65 @@ public class tp04 {
 
     // Método principal que executa o programa.
     public static void main(String[] args) {
-        String filePath = "D:\\Faculdade\\2°Periodo\\Aeds II\\AED-s-II-2025\\TP's\\Tp4\\tmp\\games.csv";
-        int totalGames = 0;
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            br.readLine();
-            while (br.readLine() != null) {
-                totalGames++;
-            }
-        } catch (IOException e) {
-            System.err.println("Erro ao ler o arquivo para contagem: " + e.getMessage());
-            return;
+    String filePath = "D:\\Faculdade\\2°Periodo\\Aeds II\\AED-s-II-2025\\TP's\\Tp4\\tmp\\games.csv";
+    int totalGames = 0;
+    
+    // ETAPA 1: Contagem de linhas com o encoding correto
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(filePath), "UTF-8"))) {
+        br.readLine();
+        while (br.readLine() != null) {
+            totalGames++;
         }
-        Game[] games = new Game[totalGames];
-        int i = 0;
-        try (BufferedReader arqReader = new BufferedReader(new FileReader(filePath))) {
-            arqReader.readLine();
-            String linha;
-            while ((linha = arqReader.readLine()) != null) {
-                if (i < totalGames) {
-                    games[i] = parseGame(linha);
-                    i++;
+    } catch (IOException e) {
+        // Erros de arquivo geralmente não devem imprimir nada no stdout para o juiz online.
+        // e.printStackTrace(); // Bom para depuração, mas comente para a entrega final.
+        return;
+    }
+
+    Game[] games = new Game[totalGames];
+    int i = 0;
+    
+    // ETAPA 2: Preenchimento do array com o encoding correto
+    try (BufferedReader arqReader = new BufferedReader(new InputStreamReader(new FileInputStream(filePath), "UTF-8"))) {
+        arqReader.readLine();
+        String linha;
+        while ((linha = arqReader.readLine()) != null) {
+            if (i < totalGames) {
+                games[i] = parseGame(linha);
+                i++;
+            }
+        }
+    } catch (IOException e) {
+        // e.printStackTrace();
+    }
+
+    // ETAPA 3: Loop de busca (sem impressões extras)
+    Scanner ent = new Scanner(System.in);
+    while (ent.hasNextLine()) {
+        String entrada = ent.nextLine();
+
+        if (entrada.trim().isEmpty()) {
+            continue;
+        }
+
+        if (entrada.equalsIgnoreCase("FIM")) {
+            break;
+        }
+
+        try {
+            int idDeBusca = Integer.parseInt(entrada);
+            for (int k = 0; k < games.length; k++) {
+                if (games[k] != null && games[k].getId() == idDeBusca) {
+                    System.out.println(games[k].toString());
+                    break;
                 }
             }
-        } catch (IOException e) {
-            System.err.println("Erro ao preencher o vetor de jogos: " + e.getMessage());
+        } catch (NumberFormatException e) {
+            // Ignora entradas inválidas, não imprime nada.
         }
+    }
+    ent.close();
 
-        // --- ETAPA 3: Loop para ler entradas do teclado (VERSÃO CORRIGIDA) ---
-        Scanner ent = new Scanner(System.in);
-        while (ent.hasNextLine()) { // Usar hasNextLine() é mais seguro para ler de arquivos
-            String entrada = ent.nextLine();
-
-            // ** CORREÇÃO APLICADA AQUI **
-            // Se a linha estiver vazia, simplesmente a ignora e continua para a próxima
-            if (entrada.trim().isEmpty()) {
-                continue;
-            }
-
-            if (entrada.equalsIgnoreCase("FIM")) {
-                break;
-            }
-
-            try {
-                int idDeBusca = Integer.parseInt(entrada);
-                boolean encontrou = false;
-
-                for (int k = 0; k < games.length; k++) {
-                    if (games[k] != null && games[k].getId() == idDeBusca) {
-                        System.out.println(games[k].toString());
-                        encontrou = true;
-                        break;
-                    }
-                }
-                
-            } catch (NumberFormatException e) {
-                System.out.println("Entrada invalida (nao e um numero nem 'FIM'): " + entrada);
-            }
-        }
-        ent.close();
     }
 
 }

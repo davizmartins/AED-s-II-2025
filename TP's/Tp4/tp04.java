@@ -274,8 +274,7 @@ public class tp04 {
         return day + "/" + monthNumber + "/" + year;
     }
 
-    // Método auxiliar que remove aspas, divide a String por vírgulas e limpa
-    // espaços de cada elemento.
+    // Método auxiliar que remove aspas, divide a String por vírgulas e limpa  espaços de cada elemento.
     public static String[] ajustarArray(String text) {
         String cleanedText = text.replace("\"", "").trim();
         if (cleanedText.isEmpty()) {
@@ -300,8 +299,7 @@ public class tp04 {
         int owners = Integer.parseInt(partes[3].replace("\"", "").split("-")[0]);
         float price = Float.parseFloat(partes[4]);
 
-        // Usa um método auxiliar para limpar e dividir campos que são listas em formato
-        // de String.
+        // Usa um método auxiliar para limpar e dividir campos que são listas em formato de String.
         String[] languages = ajustarArray(partes[5].replace("[", "").replace("]", "").replace("'", ""));
         int mScore = partes[6].isEmpty() ? -1 : Integer.parseInt(partes[6]);
         float uScore = (partes[7].isEmpty() || partes[7].equalsIgnoreCase("tbd")) ? -1.0f : Float.parseFloat(partes[7]);
@@ -330,8 +328,7 @@ public class tp04 {
             totalGames++;
         }
     } catch (IOException e) {
-        // Erros de arquivo geralmente não devem imprimir nada no stdout para o juiz online.
-        // e.printStackTrace(); // Bom para depuração, mas comente para a entrega final.
+        
         return;
     }
 
@@ -349,7 +346,6 @@ public class tp04 {
             }
         }
     } catch (IOException e) {
-        // e.printStackTrace();
     }
 
     // ETAPA 3: Loop de busca (sem impressões extras)

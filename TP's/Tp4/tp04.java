@@ -172,8 +172,7 @@ class Game {
         return result;
     }
 
-    // Cria uma representação em String completa do objeto Game, útil para testes e
-    // impressão.
+    // Cria uma representação em String completa do objeto Game, útil para testes e impressão.
 
     @Override
     public String toString() {
@@ -197,8 +196,7 @@ class Game {
     }
 }
 
-// Classe principal que executa a leitura, processamento e busca dos dados dos
-// jogos
+// Classe principal que executa a leitura, processamento e busca dos dados dos jogos
 public class tp04 {
 
     // Converte a data do formato CSV para 'dd/MM/yyyy', tratando casos incompletos.

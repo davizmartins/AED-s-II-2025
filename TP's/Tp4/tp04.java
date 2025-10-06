@@ -320,7 +320,7 @@ public class tp04 {
 
     // Método principal que executa o programa.
     public static void main(String[] args) {
-    String filePath = "D:\\Faculdade\\2°Periodo\\Aeds II\\AED-s-II-2025\\TP's\\Tp4\\tmp\\games.csv";
+    String filePath = "/tmp/games.csv";
     int totalGames = 0;
     
     // ETAPA 1: Contagem de linhas com o encoding correto

@@ -1,241 +1,330 @@
+//Aluno: Davi Martins / Matricula: 885013
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <ctype.h>
+#include <locale.h>
 
-// Tamanhos máximos para buffers de strings, para evitar estouros de memória.
-#define MAX_LINE_SIZE 2048
-#define MAX_FIELD_SIZE 512
+#define TAMMAXLINHA 4096
+#define TAMMAXCAMPO 1024
 
-// Em C, usamos uma struct para agrupar os dados, similar a uma classe sem métodos.
 typedef struct {
     int id;
-    char* name;
-    char* data;
+    char *name;
+    char *data;
     int owners;
     float price;
-    char** languages;
-    int languages_count; // C não sabe o tamanho de um array, então precisamos guardar.
+    char **languages;     int languagesCount;
     int mScore;
     float uScore;
     int conq;
-    char** publisher;
-    int publisher_count;
-    char** dev;
-    int dev_count;
-    char** categories;
-    int categories_count;
-    char** generos;
-    int generos_count;
-    char** tags;
-    int tags_count;
+    char **publisher;     int publisherCount;
+    char **dev;           int devCount;
+    char **categories;    int categoriesCount;
+    char **generos;       int generosCount;
+    char **tags;          int tagsCount;
 } Game;
 
-// Função para imprimir um array de strings, similar ao takeArray do Java.
-void print_string_array(char** arr, int count) {
+// duplica uma string (versão simples)
+char* copiaStr(const char* s) {
+    char* nova = malloc(strlen(s) + 1);
+    if (nova) strcpy(nova, s);
+    return nova;
+}
+
+// tira espaços do final
+void tiraEspacosFim(char* s) {
+    int i = strlen(s) - 1;
+    while (i >= 0 && isspace((unsigned char)s[i])) {
+        s[i] = '\0';
+        i--;
+    }
+}
+
+// avança espaços no início
+void pulaEspacos(char** s) {
+    while (**s && isspace((unsigned char)**s)) (*s)++;
+}
+
+// compara ignorando maiúsc/minúsc
+int igualIgnoreCase(const char* a, const char* b) {
+    while (*a && *b) {
+        if (tolower(*a) != tolower(*b)) return 0;
+        a++; b++;
+    }
+    return *a == *b;
+}
+
+// limpa colchetes, aspas e deixa vírgulas formatadas
+void limparLista(char* s) {
+    char* w = s;
+    for (char* r = s; *r; r++) {
+        if (*r == '[' || *r == ']' || *r == '"' || *r == '\'') continue;
+        *w++ = *r;
+    }
+    *w = '\0';
+
+    char temp[TAMMAXCAMPO * 2];
+    int j = 0;
+    for (int i = 0; s[i] && j + 2 < sizeof(temp); i++) {
+        if (s[i] == ',') {
+            temp[j++] = ',';
+            if (s[i + 1] && s[i + 1] != ' ') temp[j++] = ' ';
+        } else temp[j++] = s[i];
+    }
+    temp[j] = '\0';
+    strcpy(s, temp);
+}
+
+// divide uma string em partes (por vírgula)
+char** separarString(const char* texto, const char* delim, int* qtd) {
+    *qtd = 0;
+    if (!texto || !*texto) return NULL;
+    char* copia = copiaStr(texto);
+    char* token = strtok(copia, delim);
+    char** lista = NULL;
+
+    while (token) {
+        char* p = token;
+        pulaEspacos(&p);
+        tiraEspacosFim(p);
+        if (*p) {
+            lista = realloc(lista, sizeof(char*) * (*qtd + 1));
+            lista[*qtd] = copiaStr(p);
+            (*qtd)++;
+        }
+        token = strtok(NULL, delim);
+    }
+    free(copia);
+    return lista;
+}
+
+// imprime lista de strings
+void printLista(char** lista, int qtd) {
     printf("[");
-    for (int i = 0; i < count; i++) {
-        printf("%s%s", arr[i], (i == count - 1) ? "" : ", ");
+    for (int i = 0; i < qtd; i++) {
+        printf("%s%s", lista[i], (i == qtd - 1) ? "" : ", ");
     }
     printf("]");
 }
 
-// Função para imprimir um único jogo, similar ao toString.
-void print_game(Game* g) {
-    printf("=> %d ## %s ## %s ## %d ## %.2f ## ", g->id, g->name, g->data, g->owners, g->price);
-    print_string_array(g->languages, g->languages_count);
+// libera memória da lista
+void freeLista(char*** lista, int* qtd) {
+    if (*lista) {
+        for (int i = 0; i < *qtd; i++) free((*lista)[i]);
+        free(*lista);
+    }
+    *lista = NULL;
+    *qtd = 0;
+}
+
+// formata datas tipo "MMM d, yyyy" para "dd/MM/yyyy"
+char* formatarData(const char* dataCsv) {
+    char tmp[TAMMAXCAMPO];
+    int j = 0;
+    for (int i = 0; dataCsv[i] && j + 1 < sizeof(tmp); i++) {
+        if (dataCsv[i] != '"') tmp[j++] = dataCsv[i];
+    }
+    tmp[j] = '\0';
+
+    char buf[TAMMAXCAMPO];
+    strcpy(buf, tmp);
+    char *mes = NULL, *dia = NULL, *ano = NULL;
+    char* p = buf;
+    pulaEspacos(&p);
+    if (!*p) return copiaStr("sem data");
+
+    char* espaco = strchr(p, ' ');
+    if (espaco) {
+        *espaco = '\0';
+        mes = p;
+        char* resto = espaco + 1;
+        pulaEspacos(&resto);
+
+        char* virgula = strchr(resto, ',');
+        if (virgula) {
+            *virgula = '\0';
+            dia = resto;
+            ano = virgula + 1;
+            pulaEspacos(&ano);
+        } else {
+            dia = "01";
+            ano = resto;
+        }
+    } else {
+        mes = "Jan";
+        dia = "01";
+        ano = p;
+    }
+
+    int m = 1;
+    if (!strcmp(mes, "Jan")) m = 1; else if (!strcmp(mes, "Feb")) m = 2;
+    else if (!strcmp(mes, "Mar")) m = 3; else if (!strcmp(mes, "Apr")) m = 4;
+    else if (!strcmp(mes, "May")) m = 5; else if (!strcmp(mes, "Jun")) m = 6;
+    else if (!strcmp(mes, "Jul")) m = 7; else if (!strcmp(mes, "Aug")) m = 8;
+    else if (!strcmp(mes, "Sep")) m = 9; else if (!strcmp(mes, "Oct")) m = 10;
+    else if (!strcmp(mes, "Nov")) m = 11; else if (!strcmp(mes, "Dec")) m = 12;
+
+    int d = atoi(dia);
+    int y = atoi(ano);
+    char out[16];
+    sprintf(out, "%02d/%02d/%04d", d, m, y);
+    return copiaStr(out);
+}
+
+// lê uma linha CSV e transforma em struct Game
+void lerGame(Game* g, const char* linha) {
+    char campo[TAMMAXCAMPO];
+    int pos = 0, idx = 0;
+    bool emAspas = false;
+
+    memset(g, 0, sizeof(*g));
+    g->mScore = -1; g->uScore = -1.0f; g->conq = 0;
+
+    for (int i = 0;; i++) {
+        char c = linha[i];
+        bool fim = (c == '\0');
+
+        if (!fim && c == '"') {
+            emAspas = !emAspas;
+            continue;
+        }
+
+        if (fim || (c == ',' && !emAspas)) {
+            campo[pos] = '\0';
+            switch (idx) {
+                case 0: g->id = atoi(campo); break;
+                case 1: g->name = copiaStr(campo); break;
+                case 2: g->data = formatarData(campo); break;
+                case 3: {
+                    char temp[TAMMAXCAMPO]; strcpy(temp, campo);
+                    char* h = strchr(temp, '-'); if (h) *h = '\0';
+                    g->owners = atoi(temp);
+                } break;
+                case 4: g->price = atof(campo); break;
+                case 5: {
+                    char temp[TAMMAXCAMPO]; strncpy(temp, campo, sizeof(temp)); temp[sizeof(temp)-1] = '\0';
+                    limparLista(temp);
+                    g->languages = separarString(temp, ",", &g->languagesCount);
+                } break;
+                case 6: g->mScore = (campo[0] ? atoi(campo) : -1); break;
+                case 7: g->uScore = (!campo[0] || igualIgnoreCase(campo, "tbd")) ? -1.0f : atof(campo); break;
+                case 8: g->conq = (campo[0] ? atoi(campo) : 0); break;
+                case 9: {
+                    char temp[TAMMAXCAMPO]; strncpy(temp, campo, sizeof(temp)); temp[sizeof(temp)-1] = '\0';
+                    limparLista(temp);
+                    g->publisher = separarString(temp, ",", &g->publisherCount);
+                } break;
+                case 10: {
+                    char temp[TAMMAXCAMPO]; strncpy(temp, campo, sizeof(temp)); temp[sizeof(temp)-1] = '\0';
+                    limparLista(temp);
+                    g->dev = separarString(temp, ",", &g->devCount);
+                } break;
+                case 11: {
+                    char temp[TAMMAXCAMPO]; strncpy(temp, campo, sizeof(temp)); temp[sizeof(temp)-1] = '\0';
+                    limparLista(temp);
+                    g->categories = separarString(temp, ",", &g->categoriesCount);
+                } break;
+                case 12: {
+                    char temp[TAMMAXCAMPO]; strncpy(temp, campo, sizeof(temp)); temp[sizeof(temp)-1] = '\0';
+                    limparLista(temp);
+                    g->generos = separarString(temp, ",", &g->generosCount);
+                } break;
+                case 13: {
+                    char temp[TAMMAXCAMPO]; strncpy(temp, campo, sizeof(temp)); temp[sizeof(temp)-1] = '\0';
+                    limparLista(temp);
+                    g->tags = separarString(temp, ",", &g->tagsCount);
+                } break;
+            }
+            idx++; pos = 0;
+            if (fim) break;
+        } else if (pos + 1 < TAMMAXCAMPO) {
+            campo[pos++] = c;
+        }
+    }
+}
+
+// imprime jogo no formato certo
+void printGame(const Game* g) {
+    printf("=> %d ## %s ## %s ## %d ## %.2f ## ",
+           g->id, g->name, g->data, g->owners, g->price);
+    printLista(g->languages, g->languagesCount);
     printf(" ## %d ## %.1f ## %d ## ", g->mScore, g->uScore, g->conq);
-    print_string_array(g->publisher, g->publisher_count);
+    printLista(g->publisher, g->publisherCount);
     printf(" ## ");
-    print_string_array(g->dev, g->dev_count);
+    printLista(g->dev, g->devCount);
     printf(" ## ");
-    print_string_array(g->categories, g->categories_count);
+    printLista(g->categories, g->categoriesCount);
     printf(" ## ");
-    print_string_array(g->generos, g->generos_count);
+    printLista(g->generos, g->generosCount);
     printf(" ## ");
-    print_string_array(g->tags, g->tags_count);
+    printLista(g->tags, g->tagsCount);
     printf(" ##\n");
 }
 
-// Função crucial em C: libera toda a memória alocada para um jogo.
-void free_game(Game* g) {
+// libera memória do jogo
+void freeGame(Game* g) {
     free(g->name);
     free(g->data);
-    for (int i = 0; i < g->languages_count; i++) free(g->languages[i]);
-    free(g->languages);
-    for (int i = 0; i < g->publisher_count; i++) free(g->publisher[i]);
-    free(g->publisher);
-    for (int i = 0; i < g->dev_count; i++) free(g->dev[i]);
-    free(g->dev);
-    for (int i = 0; i < g->categories_count; i++) free(g->categories[i]);
-    free(g->categories);
-    for (int i = 0; i < g->generos_count; i++) free(g->generos[i]);
-    free(g->generos);
-    for (int i = 0; i < g->tags_count; i++) free(g->tags[i]);
-    free(g->tags);
-}
-
-// Função auxiliar para duplicar uma string, alocando nova memória.
-// Muito útil para evitar que todas as variáveis apontem para o mesmo lugar.
-char* strdup(const char* s) {
-    char* new_str = malloc(strlen(s) + 1);
-    if (new_str) {
-        strcpy(new_str, s);
-    }
-    return new_str;
-}
-
-// Implementação do "split" para arrays de strings
-char** split_string(const char* text, const char* delim, int* count) {
-    char* text_copy = strdup(text);
-    char** result = NULL;
-    char* token = strtok(text_copy, delim);
-    *count = 0;
-    while (token) {
-        // Realoca o array de ponteiros para caber mais um
-        result = realloc(result, sizeof(char*) * (*count + 1));
-        // Remove espaços em branco no início/fim do token
-        while (*token == ' ') token++;
-        char* end = token + strlen(token) - 1;
-        while (end > token && *end == ' ') end--;
-        *(end + 1) = '\0';
-        
-        result[*count] = strdup(token);
-        (*count)++;
-        token = strtok(NULL, delim);
-    }
-    free(text_copy);
-    return result;
-}
-
-// Função para formatar a data (lógica simplificada para C)
-char* format_date(const char* csv_date) {
-    // Esta é uma implementação simplificada. Uma versão completa seria mais complexa.
-    // Para o escopo do trabalho, vamos apenas copiar o valor limpando as aspas.
-    char* clean_date = strdup(csv_date);
-    // Remove aspas
-    char* ptr = strchr(clean_date, '"');
-    while(ptr) {
-        memmove(ptr, ptr + 1, strlen(ptr));
-        ptr = strchr(ptr, '"');
-    }
-    // A lógica de conversão dd/mm/aaaa pode ser adicionada aqui se necessário.
-    return clean_date;
-}
-
-// A função mais complexa: faz o parse da linha CSV.
-void parse_game(Game* game, char* line) {
-    // Em C, é mais seguro percorrer a linha manualmente do que usar um regex complexo.
-    char buffer[MAX_FIELD_SIZE];
-    int field_index = 0;
-    int buffer_pos = 0;
-    bool in_quotes = false;
-
-    for (int i = 0; line[i] != '\0'; i++) {
-        if (line[i] == '"') {
-            in_quotes = !in_quotes;
-        } else if (line[i] == ',' && !in_quotes) {
-            buffer[buffer_pos] = '\0'; // Finaliza a string do campo
-
-            // Preenche o campo correspondente no struct Game
-            switch (field_index) {
-                case 0: game->id = atoi(buffer); break;
-                case 1: game->name = strdup(buffer); break;
-                case 2: game->data = format_date(buffer); break;
-                case 3: game->owners = atoi(strtok(buffer, "-")); break;
-                case 4: game->price = atof(buffer); break;
-                case 5: { // Bloco para tratar os idiomas
-                    char* langs = strdup(buffer);
-                    char* p = langs;
-                    while ((p = strchr(p, '\''))) *p = ' ';
-                    memmove(langs, langs + 1, strlen(langs));
-                    langs[strlen(langs)-1] = '\0';
-                    game->languages = split_string(langs, ",", &game->languages_count);
-                    free(langs);
-                    break;
-                }
-                case 6: game->mScore = (strlen(buffer) == 0) ? -1 : atoi(buffer); break;
-                case 7: game->uScore = (strlen(buffer) == 0 || strcmp(buffer, "tbd") == 0) ? -1.0f : atof(buffer); break;
-                case 8: game->conq = (strlen(buffer) == 0) ? 0 : atoi(buffer); break;
-                case 9: game->publisher = split_string(buffer, ",", &game->publisher_count); break;
-                case 10: game->dev = split_string(buffer, ",", &game->dev_count); break;
-                case 11: game->categories = split_string(buffer, ",", &game->categories_count); break;
-                case 12: game->generos = split_string(buffer, ",", &game->generos_count); break;
-            }
-            buffer_pos = 0;
-            field_index++;
-        } else {
-            if (buffer_pos < MAX_FIELD_SIZE - 1) {
-                buffer[buffer_pos++] = line[i];
-            }
-        }
-    }
-    // Trata o último campo (tags)
-    buffer[buffer_pos] = '\0';
-    game->tags = split_string(buffer, ",", &game->tags_count);
+    freeLista(&g->languages, &g->languagesCount);
+    freeLista(&g->publisher, &g->publisherCount);
+    freeLista(&g->dev, &g->devCount);
+    freeLista(&g->categories, &g->categoriesCount);
+    freeLista(&g->generos, &g->generosCount);
+    freeLista(&g->tags, &g->tagsCount);
 }
 
 int main() {
-    char* filePath = "D:\\Faculdade\\2°Periodo\\Aeds II\\AED-s-II-2025\\TP's\\Tp4\\tmp\\games.csv";
-    FILE* file;
-    char line[MAX_LINE_SIZE];
-    int totalGames = 0;
+    setlocale(LC_NUMERIC, "C"); // garante ponto em floats (7.99)
+    const char* caminho = "/tmp/games.csv";
 
-    // ETAPA 1: Contagem das linhas
-    file = fopen(filePath, "r");
-    if (file == NULL) {
-        perror("Erro ao abrir o arquivo para contagem");
-        return 1;
-    }
-    fgets(line, sizeof(line), file); // Pula o cabeçalho
-    while (fgets(line, sizeof(line), file)) {
-        totalGames++;
-    }
-    fclose(file);
+    // 1) Carrega o CSV
+    FILE* arq = fopen(caminho, "r");
+    if (!arq) { perror("Erro ao abrir /tmp/games.csv"); return 1; }
 
-    // ETAPA 2: Alocação de memória e preenchimento
-    Game* games = malloc(sizeof(Game) * totalGames);
+    char linha[TAMMAXLINHA];
+    int total = 0;
+
+    if (fgets(linha, sizeof(linha), arq)) {
+        while (fgets(linha, sizeof(linha), arq)) total++;
+    }
+    fclose(arq);
+
+    Game* jogos = (Game*) malloc(sizeof(Game) * (total > 0 ? total : 1));
     int i = 0;
 
-    file = fopen(filePath, "r");
-    if (file == NULL) {
-        perror("Erro ao abrir o arquivo para leitura");
-        free(games);
-        return 1;
-    }
-    fgets(line, sizeof(line), file); // Pula o cabeçalho
-    while (fgets(line, sizeof(line), file)) {
-        // Remove o \n do final da linha lida por fgets
-        line[strcspn(line, "\r\n")] = 0;
-        if (i < totalGames) {
-            parse_game(&games[i], line);
+    arq = fopen(caminho, "r");
+    if (!arq) { perror("Erro ao reabrir /tmp/games.csv"); free(jogos); return 1; }
+
+    // pula cabeçalho
+    fgets(linha, sizeof(linha), arq);
+    while (fgets(linha, sizeof(linha), arq)) {
+        linha[strcspn(linha, "\r\n")] = 0;
+        if (i < total) {
+            lerGame(&jogos[i], linha);
             i++;
         }
     }
-    fclose(file);
+    fclose(arq);
 
-    // ETAPA 3: Leitura da entrada e busca
-    char input_line[MAX_FIELD_SIZE];
-    while (fgets(input_line, sizeof(input_line), stdin)) {
-        input_line[strcspn(input_line, "\r\n")] = 0; // Remove \n
-        if (strcmp(input_line, "FIM") == 0) {
-            break;
-        }
-        
-        int id_to_find = atoi(input_line);
-        for (int k = 0; k < totalGames; k++) {
-            if (games[k].id == id_to_find) {
-                print_game(&games[k]);
-                break;
+    // 2) Lê IDs da stdin até "FIM" e imprime
+    char entrada[TAMMAXCAMPO];
+    while (fgets(entrada, sizeof(entrada), stdin)) {
+        entrada[strcspn(entrada, "\r\n")] = 0; // remove \n e \r
+        if (entrada[0] == '\0') continue;      // ignora linha vazia
+        if (strcmp(entrada, "FIM") == 0) break;
+
+        int id = atoi(entrada);
+        for (int k = 0; k < i; k++) {
+            if (jogos[k].id == id) {
+                printGame(&jogos[k]);
+                break; // se IDs não repetem, pode sair
             }
         }
     }
 
-    // ETAPA FINAL E MAIS IMPORTANTE: Liberar toda a memória alocada
-    for (int k = 0; k < totalGames; k++) {
-        free_game(&games[k]);
-    }
-    free(games);
-
+    for (int k = 0; k < i; k++) freeGame(&jogos[k]);
+    free(jogos);
     return 0;
 }

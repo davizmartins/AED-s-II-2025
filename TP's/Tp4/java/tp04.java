@@ -1,9 +1,10 @@
 //Aluno: Davi Martins, Matricula: 885013
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.Scanner;
+import java.io.InputStreamReader;
+import java.io.FileInputStream;
 
 class Game {
     private int id;
@@ -24,7 +25,7 @@ class Game {
     public Game() {
     }
 
-    // Construtor completo para inicializar um objeto com todos os dados
+    // Construtor com todos os dados do jogo
     public Game(int id, String name, String data, int owners, float price, String[] languages, int mScore, float uScore,
             int conq, String[] publisher, String[] dev, String[] categories, String[] generos, String[] tags) {
         this.id = id;
@@ -43,7 +44,7 @@ class Game {
         this.tags = tags;
     }
 
-    // Getters para acessar os atributos privados
+    // Getters (pegar valores dos atributos)
     public int getId() {
         return id;
     }
@@ -100,7 +101,7 @@ class Game {
         return tags;
     }
 
-    // Setters para modificar os atributos privados
+    // Setters (mudar valores dos atributos)
     public void setId(int id) {
         this.id = id;
     }
@@ -157,7 +158,6 @@ class Game {
         this.tags = tags;
     }
 
-    // Método auxiliar para converter arrays em Strings formatadas.
     public String takeArray(String[] arr) {
         if (arr == null)
             return "[]";
@@ -172,12 +172,9 @@ class Game {
         return result;
     }
 
-    // Cria uma representação em String completa do objeto Game, útil para testes e
-    // impressão.
-
+    // Mostra todos os dados do jogo em uma única linha
     @Override
     public String toString() {
-        // Define o separador para facilitar o sop
         String separador = " ## ";
         return "=> " +
                 this.id + separador +
@@ -197,111 +194,102 @@ class Game {
     }
 }
 
-// Classe principal que executa a leitura, processamento e busca dos dados dos
-// jogos
+// Classe principal do programa
 public class tp04 {
 
-    // Converte a data do formato CSV para 'dd/MM/yyyy', tratando casos incompletos.
-    public static String formatDate(String csvDate) {
-        String cleanDate = csvDate.replace("\"", "").trim();
-        String[] parts = cleanDate.split(" ");
-        String monthName, day, year;
+    // Arruma a data do CSV e transforma pro formato dd/MM/yyyy
+    public static String formatarData(String dataCsv) {
+        String dataLimpa = dataCsv.replace("\"", "").trim();
+        String[] partes = dataLimpa.split(" ");
+        String mesNome, dia, ano;
 
-        // Lógica para tratar os 3 formatos de data possíveis.
-        if (parts.length == 3) {
-            monthName = parts[0];
-            day = parts[1].replace(",", "");
-            year = parts[2];
-        } else if (parts.length == 2) {
-            monthName = parts[0];
-            day = "01";
-            year = parts[1];
-        } else if (parts.length == 1 && !parts[0].isEmpty()) {
-            monthName = "Jan";
-            day = "01";
-            year = parts[0];
+        if (partes.length == 3) {
+            mesNome = partes[0];
+            dia = partes[1].replace(",", "");
+            ano = partes[2];
+        } else if (partes.length == 2) {
+            mesNome = partes[0];
+            dia = "01";
+            ano = partes[1];
+        } else if (partes.length == 1 && !partes[0].isEmpty()) {
+            mesNome = "Jan";
+            dia = "01";
+            ano = partes[0];
         } else {
             return "sem data";
         }
 
-        // Converte o nome do mês para seu número correspondente.
-        String monthNumber;
-        switch (monthName) {
+        String numeroMes;
+        switch (mesNome) {
             case "Jan":
-                monthNumber = "01";
+                numeroMes = "01";
                 break;
             case "Feb":
-                monthNumber = "02";
+                numeroMes = "02";
                 break;
             case "Mar":
-                monthNumber = "03";
+                numeroMes = "03";
                 break;
             case "Apr":
-                monthNumber = "04";
+                numeroMes = "04";
                 break;
             case "May":
-                monthNumber = "05";
+                numeroMes = "05";
                 break;
             case "Jun":
-                monthNumber = "06";
+                numeroMes = "06";
                 break;
             case "Jul":
-                monthNumber = "07";
+                numeroMes = "07";
                 break;
             case "Aug":
-                monthNumber = "08";
+                numeroMes = "08";
                 break;
             case "Sep":
-                monthNumber = "09";
+                numeroMes = "09";
                 break;
             case "Oct":
-                monthNumber = "10";
+                numeroMes = "10";
                 break;
             case "Nov":
-                monthNumber = "11";
+                numeroMes = "11";
                 break;
             case "Dec":
-                monthNumber = "12";
+                numeroMes = "12";
                 break;
             default:
-                monthNumber = "01";
+                numeroMes = "01";
         }
 
-        // Garante que o dia sempre tenha dois dígitos.
-        if (day.length() == 1) {
-            day = "0" + day;
+        if (dia.length() == 1) {
+            dia = "0" + dia;
         }
-        return day + "/" + monthNumber + "/" + year;
+        return dia + "/" + numeroMes + "/" + ano;
     }
 
-    // Método auxiliar que remove aspas, divide a String por vírgulas e limpa
-    // espaços de cada elemento.
-    public static String[] ajustarArray(String text) {
-        String cleanedText = text.replace("\"", "").trim();
-        if (cleanedText.isEmpty()) {
-            return new String[0]; // Retorna um array vazio se o campo não tiver nada.
+    // Limpa o texto e transforma em um array 
+    public static String[] ajustarArray(String texto) {
+        String textoLimpo = texto.replace("\"", "").trim();
+        if (textoLimpo.isEmpty()) {
+            return new String[0];
         }
-        String[] array = cleanedText.split(",");
-        // Loop para remover espaços em branco de cada item do array.
+        String[] array = textoLimpo.split(",");
         for (int i = 0; i < array.length; i++) {
             array[i] = array[i].trim();
         }
         return array;
     }
 
-    // Função que converte uma linha do CSV em um objeto Game.
-    public static Game parseGame(String str) {
-        // Regex para dividir a linha CSV, ignorando vírgulas dentro de aspas.
-        String[] partes = str.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
+    // Converte uma linha do arquivo CSV em um objeto Game completo
+    public static Game converterParaGame(String linha) {
+        String[] partes = linha.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", -1);
 
         int id = Integer.parseInt(partes[0]);
         String nome = partes[1].replace("\"", "");
-        String data = formatDate(partes[2]);
+        String data = formatarData(partes[2]);
         int owners = Integer.parseInt(partes[3].replace("\"", "").split("-")[0]);
         float price = Float.parseFloat(partes[4]);
 
-        // Usa um método auxiliar para limpar e dividir campos que são listas em formato
-        // de String.
         String[] languages = ajustarArray(partes[5].replace("[", "").replace("]", "").replace("'", ""));
         int mScore = partes[6].isEmpty() ? -1 : Integer.parseInt(partes[6]);
         float uScore = (partes[7].isEmpty() || partes[7].equalsIgnoreCase("tbd")) ? -1.0f : Float.parseFloat(partes[7]);
@@ -313,76 +301,66 @@ public class tp04 {
         String[] generos = ajustarArray(partes[12]);
         String[] tags = ajustarArray(partes[13]);
 
-        // Retorna um novo objeto Game com todos os dados tratados.
         return new Game(id, nome, data, owners, price, languages, mScore, uScore, conq, publisher, dev, categories,
                 generos, tags);
     }
 
-    // Método principal que executa o programa.
+    // Função principal do programa (lê, armazena e busca os jogos)
     public static void main(String[] args) {
-        String filePath = "D:\\Faculdade\\2°Periodo\\Aeds II\\AED-s-II-2025\\TP's\\Tp4\\tmp\\games.csv";
-        int totalGames = 0;
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            br.readLine();
-            while (br.readLine() != null) {
-                totalGames++;
+        String caminhoArquivo = "/tmp/games.csv";
+        int totalJogos = 0;
+
+        // Conta quantas linhas tem no arquivo
+        try (BufferedReader leitor = new BufferedReader(new InputStreamReader(new FileInputStream(caminhoArquivo), "UTF-8"))) {
+            leitor.readLine();
+            while (leitor.readLine() != null) {
+                totalJogos++;
             }
         } catch (IOException e) {
-            System.err.println("Erro ao ler o arquivo para contagem: " + e.getMessage());
             return;
         }
-        Game[] games = new Game[totalGames];
+
+        Game[] games = new Game[totalJogos];
         int i = 0;
-        try (BufferedReader arqReader = new BufferedReader(new FileReader(filePath))) {
-            arqReader.readLine();
+
+        // Lê o arquivo e guarda os jogos no vetor
+        try (BufferedReader leitorArq = new BufferedReader(new InputStreamReader(new FileInputStream(caminhoArquivo), "UTF-8"))) {
+            leitorArq.readLine();
             String linha;
-            while ((linha = arqReader.readLine()) != null) {
-                if (i < totalGames) {
-                    games[i] = parseGame(linha);
+            while ((linha = leitorArq.readLine()) != null) {
+                if (i < totalJogos) {
+                    games[i] = converterParaGame(linha);
                     i++;
                 }
             }
         } catch (IOException e) {
-            System.err.println("Erro ao preencher o vetor de jogos: " + e.getMessage());
         }
 
-        // --- ETAPA 3: Loop para ler entradas do teclado (VERSÃO CORRIGIDA) ---
-        Scanner ent = new Scanner(System.in);
-        System.out.println("Arquivo carregado. Digite um ID para buscar ou 'FIM' para sair.");
+        // Faz a busca dos jogos pelo id
+        Scanner entrada = new Scanner(System.in);
+        while (entrada.hasNextLine()) {
+            String linhaEntrada = entrada.nextLine();
 
-        while (ent.hasNextLine()) { // Usar hasNextLine() é mais seguro para ler de arquivos
-            String entrada = ent.nextLine();
-
-            // ** CORREÇÃO APLICADA AQUI **
-            // Se a linha estiver vazia, simplesmente a ignora e continua para a próxima
-            if (entrada.trim().isEmpty()) {
+            if (linhaEntrada.trim().isEmpty()) {
                 continue;
             }
 
-            if (entrada.equalsIgnoreCase("FIM")) {
+            if (linhaEntrada.equalsIgnoreCase("FIM")) {
                 break;
             }
 
             try {
-                int idDeBusca = Integer.parseInt(entrada);
-                boolean encontrou = false;
-
+                int idBusca = Integer.parseInt(linhaEntrada);
                 for (int k = 0; k < games.length; k++) {
-                    if (games[k] != null && games[k].getId() == idDeBusca) {
+                    if (games[k] != null && games[k].getId() == idBusca) {
                         System.out.println(games[k].toString());
-                        encontrou = true;
                         break;
                     }
                 }
-                if (!encontrou) {
-                    System.out.println("ID nao encontrado.");
-                }
             } catch (NumberFormatException e) {
-                System.out.println("Entrada invalida (nao e um numero nem 'FIM'): " + entrada);
+                // ignora entradas inválidas
             }
         }
-        ent.close();
-        System.out.println("Programa finalizado.");
+        entrada.close();
     }
-
 }

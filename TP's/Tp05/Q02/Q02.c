@@ -5,9 +5,13 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include <locale.h>
+#include <time.h>
+
 
 #define TAMMAXLINHA 4096
 #define TAMMAXCAMPO 1024
+int comparacoes = 0;
+int movimentacoes = 0;
 
 typedef struct {
     int id;
@@ -26,7 +30,7 @@ typedef struct {
     char **tags;          int tagsCount;
 } Game;
 
-// duplica uma string 
+// Duplica uma string 
 char* copiaStr(const char* s) {
     char* nova = malloc(strlen(s) + 1);
     if (nova) strcpy(nova, s);
@@ -276,59 +280,27 @@ void freeGame(Game* g) {
 }
 
 //Função para ordenar o array em ordem alfabetica
-void ordenarNome(Game **g) {
-
-    int n = 0;
-    while (g[n] != NULL) {
-        n++;
-    }
-
-    // Algoritmo Selection Sort
-    for (int i = 0; i < n; i++) {
+void ordenarNome(Game **g, int n) {
+     for (int i = 0; i < (n - 1); i++) {
         int menor = i;
-        
-        for (int j = i + 1; j < n; j++) {
-            int k = compararNome(g[j], g[menor]); 
-
-            if (k < 0) {
+        for (int j = (i + 1); j < n; j++) {
+            comparacoes++;
+            if (strcmp(g[j]->name, g[menor]->name) < 0) {
                 menor = j;
             }
         }
-        
         if (menor != i) {
-            Game *temp = g[i]; 
+            Game* temp = g[i];
             g[i] = g[menor];
             g[menor] = temp;
-            free(temp);
+            movimentacoes += 3;
         }
     }
-}
-
-//Função para comparar os nomes pro selection
-int compararNome( Game *g,  Game *g2) {
-    char *s1 = g->name;
-    char *s2 = g2->name;
-    int tam1 = strlen(s1); 
-    int tam2 = strlen(s2); 
-
-    for (int i = 0; i < tam1 && i < tam2; i++) {
-        // Conversão para minúsculas
-        int c1 = tolower(s1[i]);
-        int c2 = tolower(s2[i]);
-
-        if (c1 < c2) {
-            return -1;
-        } else if (c1 > c2) {
-            return 1;
-        }
-    }
-
-    return 0;
 }
 
 int main() {
     setlocale(LC_NUMERIC, "C"); // garante ponto em floats (7.99)
-    const char* caminho = "/tmp/games.csv";
+    const char* caminho = "games.csv";
 
     // 1) Carrega o CSV
     FILE* arq = fopen(caminho, "r");
@@ -359,29 +331,51 @@ int main() {
     }
     fclose(arq);
 
-    // 2) Lê IDs da stdin até "FIM" e armazena em um novo array de jogosOrdenados
-    Game* jogosOrdenados = (Game*) malloc(sizeof(Game) * (total));
+    // 2) Lê e busca jogos pelo ID e armazena em um novo array de jogosOrdenados
+    Game** jogosOrdenados = (Game**) malloc(sizeof(Game*) * (total));
     char entrada[TAMMAXCAMPO];
+    int aux=0;
     while (fgets(entrada, sizeof(entrada), stdin)) {
         entrada[strcspn(entrada, "\r\n")] = 0; // remove \n e \r
         if (entrada[0] == '\0') continue;      // ignora linha vazia
         if (strcmp(entrada, "FIM") == 0) break;
-
+        
         int id = atoi(entrada);
         for (int k = 0; k < i; k++) {
             if (jogos[k].id == id) {
-                jogosOrdenados[k]=jogos[k];
+                jogosOrdenados[aux] = &jogos[k];
+                aux++;
                 break; // se IDs não repetem, pode sair
             }
         }
     }
-    //chama a função para ordenar o array em ordem alfabetica
-    ordenarNome(jogosOrdenados);
 
-    for (int k = 0; k < i; k++){
-     freeGame(&jogos[k]);
-     freeGame(&jogosOrdenados[k]);
+    // 3) chama a função para ordenar o array em ordem alfabetica
+    clock_t inicio = clock();
+    for(int x=0; x<1000; x++){
+        ordenarNome(jogosOrdenados, aux);
     }
+    clock_t fim = clock();
+    double tempo = (double)(fim - inicio) / CLOCKS_PER_SEC;
+
+
+    // 4) Imprime os jogos na ordem solicitada
+    for (int k = 0; k < aux; k++) {
+        printGame(jogosOrdenados[k]);
+    }
+    
+    // Criar arquivo de log
+    FILE *logf = fopen("885013_selecao.txt", "w");
+    if (logf) {
+        fprintf(logf, "885013\t Comparações: %d\t Movimentações: %d\t Tempo: %.6f\n", comparacoes, movimentacoes, tempo);
+        fclose(logf);
+    }
+
+    // 5) Libera memória
+    for (int k = 0; k < i; k++){
+        freeGame(&jogos[k]);
+    }
+    free(jogosOrdenados); 
     free(jogos);
     return 0;
 }

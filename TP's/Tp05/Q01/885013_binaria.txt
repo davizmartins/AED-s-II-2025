@@ -1,0 +1,1 @@
+885013	Tempo de execução:213	Número de comparações:199

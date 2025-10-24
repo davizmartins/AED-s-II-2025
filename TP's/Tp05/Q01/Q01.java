@@ -477,7 +477,7 @@ public class Q01 {
         // Criação do arquivo log
         try {
             java.io.FileWriter log = new java.io.FileWriter("885013_binaria.txt");
-            log.write("885013" + "\t" + "Tempo de execução:" + tempo + "\t" + "Número de comparações:" + comparacoes);
+            log.write("885013" + "\t" + tempo + "\t" + comparacoes);
             log.close();
         } catch (IOException e) {
             e.printStackTrace();

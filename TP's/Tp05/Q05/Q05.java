@@ -195,7 +195,7 @@ class Game {
 }
 
 // Classe principal do programa
-public class Q03 {
+public class Q05 {
 
     // Arruma a data do CSV e transforma pro formato dd/MM/yyyy
     public static String formatarData(String dataCsv) {
@@ -305,64 +305,82 @@ public class Q03 {
                 generos, tags);
     }
 
-    // Função para ordenar os jogos pelo quantidade de Owners usando o HeapSort
-    public static void heapSort(Game[] g, int n) {
-        construirHeap(g, n);
+    // Função para ordenar os jogos por preço usando o MergeSort
+    public static void mergeSort(Game[] g, int esquerda, int direita) {
 
-        for (int fim = n - 1; fim > 0; fim--) {
-            swap(g, 0, fim);
-            reconstruirHeap(g, fim, 0);
+        if (esquerda < direita) {
+            int meio = (esquerda + direita) / 2;
+            mergeSort(g, esquerda, meio);
+            mergeSort(g, meio + 1, direita);
+            intercalar(g, esquerda, meio, direita);
         }
     }
 
-    // Função para construir o heap
-    private static void construirHeap(Game[] g, int n) {
-        for (int i = (n / 2) - 1; i >= 0; i--) {
-            reconstruirHeap(g, n, i);
+    public static void intercalar(Game[] g, int esq, int meio, int dir) {
+        // tamanho dos subarrays de games
+        int nEsq = (meio + 1) - esq;
+        int nDir = dir - meio;
+
+        Game[] Gesquerda = new Game[nEsq + 1];
+        Game[] Gdireita = new Game[nDir + 1];
+
+        int iE, iD, i;
+
+        // Montagem do subarray da esquerda
+        for (iE = 0; iE < nEsq; iE++) {
+            Gesquerda[iE] = g[esq + iE];
         }
-    }
 
-    // Função para reconstruir o heap
-    public static void reconstruirHeap(Game[] g, int tam, int i) {
-        while (true) {
-            int esq = 2 * i + 1; // filho esquerdo
-            int dir = 2 * i + 2; // filho direito
-            int maior = i;
+        // Montagem do subarray da direita
+        for (iD = 0; iD < nDir; iD++) {
+            Gdireita[iD] = g[meio + 1 + iD];
+        }
 
-            // se existir filho esquerdo e ele for maior que o atual "maior"
-            if (esq < tam && comparador(g[esq], g[maior])) {
-                maior = esq;
-            }
-            // se existir filho direito e ele for maior que o "maior"
-            if (dir < tam && comparador(g[dir], g[maior])) {
-                maior = dir;
-            }
+        // Intercalação dos subarrays
+        iE = 0;
+        iD = 0;
+        i = esq;
 
-            // se o maior não é o pai, troca e continua descendo
-            if (maior != i) {
-                swap(g, i, maior);
-                i = maior;
+        while (iE < nEsq && iD < nDir) {
+            // comparar preços
+            comparacoes++; 
+            if (Gesquerda[iE].getPrice() < Gdireita[iD].getPrice()) {
+                g[i++] = Gesquerda[iE++];
+                movimentacoes++;
             } else {
-                break;
+                comparacoes++; 
+                if (Gesquerda[iE].getPrice() > Gdireita[iD].getPrice()) {
+                    g[i++] = Gdireita[iD++];
+                    movimentacoes++;
+                } else {
+                    comparacoes++; 
+                    if (Gesquerda[iE].getId() <= Gdireita[iD].getId()) {
+                        g[i++] = Gesquerda[iE++];
+                        movimentacoes++;
+                    } else {
+                        g[i++] = Gdireita[iD++];
+                        movimentacoes++;
+                    }
+                }
             }
-        }
-    }
 
-    // Função que compara dois jogos para ver se A é "maior" que B no heap
-    private static boolean comparador(Game a, Game b) {
-        comparacoes++;
-        if (a.getOwners() != b.getOwners()) {
-            return a.getOwners() > b.getOwners();
-        } else {
-            return a.getId() > b.getId(); // desempate
         }
-    }
 
-    private static void swap(Game[] g, int i, int j) {
-        Game tmp = g[i];
-        g[i] = g[j];
-        g[j] = tmp;
-        movimentacoes += 3;
+        // Copia os elementos restantes do subarray da esquerda
+        while (iE < nEsq) {
+            g[i] = Gesquerda[iE];
+            iE++;
+            i++;
+            movimentacoes++;
+        }
+
+        // Copia os elementos restantes do subarray da direita
+        while (iD < nDir) {
+            g[i] = Gdireita[iD];
+            iD++;
+            i++;
+            movimentacoes++;
+        }
     }
 
     public static int comparacoes = 0;
@@ -430,21 +448,28 @@ public class Q03 {
             }
         }
 
-        // Ordena os jogos pelo quantidade de Owners usando o HeapSort
+        // Ordena os jogos pelo preço usando o MergeSort
         long inicio = System.currentTimeMillis();
-        heapSort(GamesOrdenados, count);
+        mergeSort(GamesOrdenados, 0, count - 1);
         long fim = System.currentTimeMillis();
         long tempo = fim - inicio;
 
-        // Imprime os jogos ordenados
-        for (int j = 0; j < count; j++) {
+        // Imprime os 5 jogos mais caros
+        System.out.println("| 5 pre\u00E7os mais caros |");
+        for (int j = count - 1; j >= 0 && j >= count - 5; j--) {
+            System.out.println(GamesOrdenados[j]);
+        }
+        System.out.println("");
+        // Imprime os 5 jogos mais baratos
+        System.out.println("| 5 pre\u00E7os mais baratos |");
+        for (int j = 0; j < 5 && j < count; j++) {
             System.out.println(GamesOrdenados[j]);
         }
 
         entrada.close();
 
         // Criação do arquivo de log
-        try (java.io.FileWriter log = new java.io.FileWriter("885013_heapsort.txt")) {
+        try (java.io.FileWriter log = new java.io.FileWriter("885013_mergesort.txt")) {
             // matrícula \t comparações \t movimentações \t tempo(ms)
             log.write("885013\t" + comparacoes + "\t" + movimentacoes + "\t" + tempo + "\n");
         } catch (IOException e) {

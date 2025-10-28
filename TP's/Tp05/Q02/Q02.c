@@ -183,7 +183,7 @@ void lerGame(Game* g, const char* linha) {
     int pos = 0, idx = 0;
     bool emAspas = false;
 
-    memset(g, 0, sizeof(*g));
+    *g= (Game){0};  //ele reseta pra 0 todos os campos de forma definida em C
     g->mScore = -1; g->uScore = -1.0f; g->conq = 0;
 
     for (int i = 0;; i++) {

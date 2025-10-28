@@ -31,7 +31,7 @@ typedef struct {
 } Game;
 
 // Duplica uma string 
-char* copiaStr(const char* s) {
+char* copiaStr(char* s) {
     char* nova = malloc(strlen(s) + 1);
     if (nova) strcpy(nova, s);
     return nova;
@@ -52,7 +52,7 @@ void pulaEspacos(char** s) {
 }
 
 // compara ignorando maiúsc/minúsc
-int igualIgnoreCase(const char* a, const char* b) {
+int igualIgnoreCase(char* a, char* b) {
     while (*a && *b) {
         if (tolower(*a) != tolower(*b)) return 0;
         a++; b++;
@@ -60,7 +60,7 @@ int igualIgnoreCase(const char* a, const char* b) {
     return *a == *b;
 }
 
-// limpa colchetes, aspas e deixa vírgulas formatadas
+//Função que remove colchetes/aspas e arruma vírgula
 void limparLista(char* s) {
     char* w = s;
     for (char* r = s; *r; r++) {
@@ -81,8 +81,8 @@ void limparLista(char* s) {
     strcpy(s, temp);
 }
 
-// divide uma string em partes (por vírgula)
-char** separarString(const char* texto, const char* delim, int* qtd) {
+// Função que separa uma string de acordo com as virgulas
+char** separarString(char* texto, char* delim, int* qtd) {
     *qtd = 0;
     if (!texto || !*texto) return NULL;
     char* copia = copiaStr(texto);
@@ -104,7 +104,7 @@ char** separarString(const char* texto, const char* delim, int* qtd) {
     return lista;
 }
 
-// imprime lista de strings
+// Função que imprime lista
 void printLista(char** lista, int qtd) {
     printf("[");
     for (int i = 0; i < qtd; i++) {
@@ -113,7 +113,7 @@ void printLista(char** lista, int qtd) {
     printf("]");
 }
 
-// libera memória da lista
+// Função que libera memória da lista
 void freeLista(char*** lista, int* qtd) {
     if (*lista) {
         for (int i = 0; i < *qtd; i++) free((*lista)[i]);
@@ -123,8 +123,8 @@ void freeLista(char*** lista, int* qtd) {
     *qtd = 0;
 }
 
-// formata datas tipo "MMM d, yyyy" para "dd/MM/yyyy"
-char* formatarData(const char* dataCsv) {
+//Função que converte data para dd/MM/yyyy
+char* formatarData(char* dataCsv) {
     char tmp[TAMMAXCAMPO];
     int j = 0;
     for (int i = 0; dataCsv[i] && j + 1 < sizeof(tmp); i++) {
@@ -177,13 +177,13 @@ char* formatarData(const char* dataCsv) {
     return copiaStr(out);
 }
 
-// lê uma linha CSV e transforma em struct Game
-void lerGame(Game* g, const char* linha) {
+// Função que lê uma linha CSV e transforma em Game
+void lerGame(Game* g, char* linha) {
     char campo[TAMMAXCAMPO];
     int pos = 0, idx = 0;
     bool emAspas = false;
 
-    memset(g, 0, sizeof(*g));
+    memset(g, 0, sizeof(*g));  //ele reseta pra 0 todos os campos de game
     g->mScore = -1; g->uScore = -1.0f; g->conq = 0;
 
     for (int i = 0;; i++) {
@@ -249,8 +249,8 @@ void lerGame(Game* g, const char* linha) {
     }
 }
 
-// imprime jogo no formato certo
-void printGame(const Game* g) {
+// Função que imprime os games no formato solicitado no verde
+void printGame(Game* g) {
     printf("=> %d ## %s ## %s ## %d ## %.2f ## ",
            g->id, g->name, g->data, g->owners, g->price);
     printLista(g->languages, g->languagesCount);
@@ -279,30 +279,76 @@ void freeGame(Game* g) {
     freeLista(&g->tags, &g->tagsCount);
 }
 
-//Função para ordenar o array em ordem alfabetica
-void ordenarNome(Game **g, int n) {
-     for (int i = 0; i < (n - 1); i++) {
-        int menor = i;
-        for (int j = (i + 1); j < n; j++) {
-            comparacoes++;
-            if (strcmp(g[j]->name, g[menor]->name) < 0) {
-                menor = j;
-            }
-        }
-        if (menor != i) {
-            Game* temp = g[i];
-            g[i] = g[menor];
-            g[menor] = temp;
-            movimentacoes += 3;
-        }
-    }
+//Função que troca dois ponteiros de Game
+void swap(Game** a, Game** b){
+    Game* temp= *a;
+    *a= *b;
+    *b= temp;
+    movimentacoes+=3;
 }
 
-int main() {
-    setlocale(LC_NUMERIC, "C"); // garante ponto em floats (7.99)
-    const char* caminho = "games.csv";
+// Função que converte dd/MM/yyyy para inteiro yyyymmdd para facilitar a comparação
+int dataConversor(char *s) {
+    int d=0, m=0, a=0;
+    sscanf(s, "%d/%d/%d", &d, &m, &a);
+    return a*10000 + m*100 + d;
+}
 
-    // 1) Carrega o CSV
+// Função que compara dois jogos pelo critério data, depois id
+int dataCmp(Game *a, Game *b) {
+    int dA = dataConversor(a->data);
+    int dB = dataConversor(b->data);
+
+    comparacoes++;                 // comparação de data
+    if (dA < dB) return -1;
+    
+    comparacoes++;                 
+    if (dA > dB) return 1;
+
+    comparacoes++;                 // desempate por id
+    if (a->id < b->id) return -1;
+    
+    comparacoes++;                 
+    if (a->id > b->id) return 1;
+
+    return 0;
+}
+
+
+//Função para ordenar os jogos pelo data de lançamento usando quicksort
+void quicksort(Game **g, int esq, int dir) {
+    int i = esq;
+    int j = dir;
+    Game *pivo = g[(esq + dir) / 2];
+
+    while (i <= j) {
+        while (dataCmp(g[i], pivo) < 0){
+            i++;   // anda pela esquerda
+        }
+        while (dataCmp(g[j], pivo) > 0){
+            j--;   // anda pela direita
+        }
+        if (i <= j) {
+            swap(&g[i], &g[j]);
+            i++;
+            j--;
+        }
+    }
+
+    if (esq < j){
+        quicksort(g, esq, j);
+    }
+    if (i < dir){ 
+        quicksort(g, i, dir);
+    }    
+}
+
+
+int main() {
+    setlocale(LC_NUMERIC, "C"); // usa pontos em floats 
+    char* caminho = "/tmp/games.csv";
+
+    //Carrega o CSV
     FILE* arq = fopen(caminho, "r");
     if (!arq) { perror("Erro ao abrir /tmp/games.csv"); return 1; }
 
@@ -320,7 +366,7 @@ int main() {
     arq = fopen(caminho, "r");
     if (!arq) { perror("Erro ao reabrir /tmp/games.csv"); free(jogos); return 1; }
 
-    // pula cabeçalho
+    // Pula cabeçalho
     fgets(linha, sizeof(linha), arq);
     while (fgets(linha, sizeof(linha), arq)) {
         linha[strcspn(linha, "\r\n")] = 0;
@@ -331,7 +377,7 @@ int main() {
     }
     fclose(arq);
 
-    // 2) Lê e busca jogos pelo ID e armazena em um novo array de jogosOrdenados
+    // Lê e busca jogos pelo ID e armazena em um novo array de jogosOrdenados
     Game** jogosOrdenados = (Game**) malloc(sizeof(Game*) * (total));
     char entrada[TAMMAXCAMPO];
     int aux=0;
@@ -345,33 +391,31 @@ int main() {
             if (jogos[k].id == id) {
                 jogosOrdenados[aux] = &jogos[k];
                 aux++;
-                break; // se IDs não repetem, pode sair
+                break; 
             }
         }
     }
 
-    // 3) chama a função para ordenar o array em ordem alfabetica
+    //Chama a função para ordenar o array de acordo com a data de lançamento com quicksort
     clock_t inicio = clock();
-    for(int x=0; x<1000; x++){
-        ordenarNome(jogosOrdenados, aux);
-    }
+    quicksort(jogosOrdenados, 0, aux - 1);
     clock_t fim = clock();
     double tempo = (double)(fim - inicio) / CLOCKS_PER_SEC;
 
 
-    // 4) Imprime os jogos na ordem solicitada
+    //Imprime os jogos na ordem solicitada
     for (int k = 0; k < aux; k++) {
         printGame(jogosOrdenados[k]);
     }
     
     // Criar arquivo de log
-    FILE *logf = fopen("885013_selecao.txt", "w");
+    FILE *logf = fopen("885013_quicksort.txt", "w");
     if (logf) {
-        fprintf(logf, "885013\t %d\t %d\t %.6f\n", comparacoes, movimentacoes, tempo);
+        fprintf(logf, "885013\t%d\t%d\t%.6f\n", comparacoes, movimentacoes, tempo);
         fclose(logf);
     }
 
-    // 5) Libera memória
+    //Libera memória
     for (int k = 0; k < i; k++){
         freeGame(&jogos[k]);
     }

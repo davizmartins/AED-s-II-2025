@@ -293,148 +293,58 @@ Celula * newCelula(Game *g){
     return c;
 }
 
-//Struct da Lista Simples
-typedef struct ListaSimples{
-    Celula *primeiro, *ultimo;
-}ListaSimples;
+//Struct da Pilha 
+typedef struct Pilha{
+    Celula *topo;
+}Pilha;
 
-//Construtor da Lista Sinples
-ListaSimples *newListaSimples(){
-    ListaSimples *l=(ListaSimples*)malloc(sizeof(ListaSimples));
-    l->primeiro=newCelula(NULL);
-    l->ultimo=l->primeiro;
-    return l;
+//Construtor da Pilha
+Pilha *newPilha(){
+    Pilha *p=(Pilha*)malloc(sizeof(Pilha));
+    p->topo=NULL;
+    return p;
 }
 
-//Função que obtem o tamanho da Lista
-int tamanho(ListaSimples *l){
-    int cont=0;
-    Celula *i=l->primeiro->prox;
-    while(i!=NULL){
-        i=i->prox;
-        cont++;
-    }
-    return cont;
-}
-
-
-void inserirInicio(Game *g, ListaSimples *l){
+void inserir(Game *g, Pilha *p){
     Celula *c=newCelula(g);
-    c->prox=l->primeiro->prox;
-    l->primeiro->prox=c;
-    if(l->primeiro==l->ultimo){
-        l->ultimo=c;
-    }
+    c->prox=p->topo;
+    p->topo=c;
     c=NULL;
 }
 
-void inserirFim(Game *g, ListaSimples *l){
-    Celula *c=newCelula(g);
-    l->ultimo->prox=c;
-    l->ultimo=c;
+Game* remover(Pilha *p){
+    if (p == NULL || p->topo == NULL) return NULL; // pilha vazia
+    Celula *c=p->topo;
+    Game *tmp=c->gC;
+    p->topo=p->topo->prox;
+    c->prox=NULL;
+    free(c);
+    return tmp;
 }
 
-void inserir(int pos, Game *g, ListaSimples *l){
-    int tam = tamanho(l);
-    if(pos> tam||pos<0){
-        errx(1,"Erro!");
-    }else if(pos==0){
-        inserirInicio(g, l);
-    }else if(pos==tam){
-        inserirFim(g, l);
-    }else{
-        Celula *c= newCelula(g);
-        Celula *i=l->primeiro;
-        for(int j=0;j<pos;j++, i=i->prox);
-        c->prox=i->prox;
-        i->prox=c;
-        i=c=NULL;
-    }
+//Função que já printa e mostra o jogo na pilha de acordo com a saída no verde
+void mostrarBaseRec(Celula *i, int *idx){
+    if (!i) return;
+    mostrarBaseRec(i->prox, idx);   
+    printf("[%d] ", (*idx)++);
+    printGame(i->gC);
 }
-
-Game *removerFim(ListaSimples *l){
-    if(l->primeiro==l->ultimo){
-        errx(1,"Erro!");
-    }else{
-        Game *remov=l->ultimo->gC;
-        Celula *i=l->primeiro;
-        for(;i->prox!=l->ultimo; i=i->prox);
-        i->prox=NULL;
-        l->ultimo=i;
-        free(l->ultimo->prox);
-        i=l->ultimo->prox=NULL;
-        return remov;
-    }
-}
-
-Game*  removerInicio(ListaSimples *l) {
-   if (l->primeiro == l->ultimo) {
-      errx(1, "Erro ao remover!");
-   }
-
-   Celula* i = l->primeiro;
-   l->primeiro = l->primeiro->prox;
-   Game *remov = l->primeiro->gC;
-   i->prox = NULL;
-   free(i);
-   i = NULL;
-   return remov;
-}
-
-Game* remover(ListaSimples *l, int pos){
-    int tam=tamanho(l);
-    Game *remov;
-    if (l->primeiro == l->ultimo){
-      errx(1, "Erro ao remover (vazia)!");
-    }else if(pos>tam || pos<0){
-        errx(1, "Erro!");
-    }else if(pos==0){
-        remov =removerInicio(l);
-    }else if(pos==tam){
-       remov= removerFim(l);
-    }else{
-        Celula *i=l->primeiro;
-        for(int j=0; j<pos;j++, i=i->prox);
-        Celula *tmp=i->prox;
-        remov=tmp->gC;
-        i->prox=tmp->prox;
-        tmp->prox=NULL;
-        free(tmp);
-        i=tmp=NULL;
-    }
-    return remov;
-}
-
-//Função que já printa e mostra o jogo na lista de acordo com a saída no verde
-void mostrarLista(ListaSimples *l) {
-    Celula *i = l->primeiro->prox; 
+void mostrarPilha(Pilha *p){
     int idx = 0;
-    while (i != NULL) {
-        printf("[%d] ", idx);
-        printGame(i->gC);          
-        i = i->prox;
-        idx++;
+    mostrarBaseRec(p->topo, &idx);  
+}
+//Função para liberar a pilha 
+void liberarPilha(Pilha *p){
+    if (!p) return;
+    Celula *i = p->topo;
+    while (i){
+        Celula *prox = i->prox;
+        free(i);
+        i = prox;
     }
+    free(p);
 }
 
-// Função que libera a memória de todas as células e da estrutura ListaSimples
-void freeListaSimples(ListaSimples *l) {
-    if (l == NULL) {
-        return;
-    }
-
-    Celula *atual = l->primeiro;
-    Celula *proximo;
-
-    while (atual != NULL) {
-        proximo = atual->prox;
-        free(atual); 
-        atual = proximo;
-    }
-
-    
-    free(l);
-}
 
 int main() {
     setlocale(LC_NUMERIC, "C"); //usa ponto em float
@@ -470,7 +380,7 @@ int main() {
     fclose(arq);
 
     //Lê e busca jogos pelo ID e armazena em um novo array de jogosOrdenados
-    ListaSimples *lista = newListaSimples();
+    Pilha *pilha = newPilha();
     char entrada[TAMMAXCAMPO];
     
     while (fgets(entrada, sizeof(entrada), stdin)) {
@@ -482,7 +392,7 @@ int main() {
         for (int k = 0; k < i; k++) {
             if (jogos[k].id == id) {
                 
-                inserirFim(&jogos[k], lista); 
+                inserir(&jogos[k], pilha); 
                 break; 
             }
         }
@@ -491,91 +401,54 @@ int main() {
 
     //Processo de leitura da segunda parte
     int op;
-    char linha_comando[150];
+    char linhaComando[150];
     
     // Lê o número de operações 
     scanf("%d", &op);
     
    
-    while (getchar() != '\n' && getchar() != EOF); 
+    int ch; 
+    while ((ch = getchar()) != '\n' && ch != EOF);
 
     // Processa os comandos linha a linha
     for (int c = 0; c < op; c++) {
+        if (!fgets(linhaComando, sizeof(linhaComando), stdin)) break;
 
-        // Lê a linha do comando 
-        fgets(linha_comando, sizeof(linha_comando), stdin);
-        linha_comando[strcspn(linha_comando, "\r\n")] = 0; // Remove \n e \r
+        // tira \n e espaços das pontas
+        int n = (int)strcspn(linhaComando, "\r\n");
+        linhaComando[n] = '\0';
+        // avança espaços iniciais
+        char *cmd = linhaComando;
+        while (*cmd == ' ') cmd++;
 
-        char comando[3]; 
-        int pos, id;
-        Game *gameRemovido = NULL;
-        
-        // Copia os 2 primeiros caracteres e garante o terminador '\0'
-        strncpy(comando, linha_comando, 2);
-        comando[2] = '\0';
-        
-        // Comandos de INSERÇÃO 
-        
-        if (strcmp(comando, "II") == 0) {
-            // Extrai ID (está no índice 3)
-            id = atoi(linha_comando + 3); 
-            
-            for (int k = 0; k < i; k++) {
-                if (jogos[k].id == id) {
-                    inserirInicio(&jogos[k], lista);
-                    break;
-                }
-            }
-            
-        } else if (strcmp(comando, "IF") == 0) {
-
-            id = atoi(linha_comando + 3);
+        if (*cmd == 'I') {                 
+            cmd++;                         
+            while (*cmd == ' ') cmd++;  // pula espaços
+            int id = atoi(cmd);
 
             for (int k = 0; k < i; k++) {
-                if (jogos[k].id == id) {
-                    inserirFim(&jogos[k], lista);
-                    break;
+                if (jogos[k].id == id) { 
+                    inserir(&jogos[k], pilha); break; 
                 }
             }
 
-        } else if (strcmp(comando, "I*") == 0) {
-            // Extrai POS e ID usando sscanf
-            sscanf(linha_comando + 3, "%d %d", &pos, &id); 
-
-            for (int k = 0; k < i; k++) {
-                if (jogos[k].id == id) {
-                    inserir(pos, &jogos[k], lista);
-                    break;
-                }
-            }
-            
-        //Comandos de REMOÇÃO
-
-        } else if (strcmp(comando, "RI") == 0) {
-            gameRemovido = removerInicio(lista);
-            printf("(R) %s\n", gameRemovido->name);
-            
-        } else if (strcmp(comando, "RF") == 0) {
-            gameRemovido = removerFim(lista);
-            printf("(R) %s\n", gameRemovido->name);
-
-        } else if (strcmp(comando, "R*") == 0) {
-            // Extrai POS
-            pos = atoi(linha_comando + 3);
-            gameRemovido = remover(lista, pos);
-            printf("(R) %s\n", gameRemovido->name);
+        } else if (*cmd == 'R') {          
+            Game *rem = remover(pilha);
+            if (rem) printf("(R) %s\n", rem->name);
+        
         }
     }
 
-    //Chamada de metodo para impressão dos jogos dentro da lista
-    mostrarLista(lista);
+    //Chamada de metodo para impressão dos jogos dentro da pilha
+    mostrarPilha(pilha);
 
-    //Libera memória do array e da lista de jogos
+    //Libera memória do array e da pilha de jogos
+    liberarPilha(pilha);
+
     for (int k = 0; k < i; k++){
         freeGame(&jogos[k]);
     }
 
-    freeListaSimples(lista);
 
     free(jogos);
     return 0;

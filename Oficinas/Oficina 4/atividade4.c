@@ -24,6 +24,14 @@ lista *newLista(){
 }
 
 void inserirLista(char *nm, lista *pl){
+    Celula *nova=newCelula(nm);
+    if(pl->primeiro==NULL){
+        pl->primeiro=nova;
+        pl->ultimo=nova;
+    }else{
+        pl->ultimo->prox=nova;
+        pl->ultimo=nova;
+    }
     //implementar insercao na lista
     // Celula* nova = newCelula(nm);
     // nova->prox = pl->ultimo
@@ -40,7 +48,7 @@ No* newNo(int num){
     No *no=(No*)malloc(sizeof(No));
     no->dd=num;
     no->esq=no->dir=NULL;
-    no->pl=NULL;
+    no->pl=newLista();
     return no;
 }
 
@@ -53,14 +61,20 @@ Arvore* newArvore(){
     a->raiz=NULL;
     return a;
 }
-Celula* inserirRecNo(char *nm, int num, No* no){
+
+void inserirRecNo(char *nm, int num, No* no){
     if(no->dd == num){
         inserirLista(nm, no->pl);
         //inserir nm na lista no->pl
+    }else if(no->dd>num){
+        inserirRecNo(nm, num, no->esq);
+    }else{
+        inserirRecNo(nm, num, no->dir);
     }
 }
+
 void inserirNo(char *nm, int num, Arvore *a){
-    return inserirRecNo(nm, num, a->raiz);
+    inserirRecNo(nm, num, a->raiz);
 }
 
 No* inserirRecArvore(int x, No *no){
@@ -68,14 +82,14 @@ No* inserirRecArvore(int x, No *no){
         no=newNo(x);
     }else if(x>no->dd){
         no->dir =inserirRecArvore(x,no->dir);
-    }else if(x<no->esq){
+    }else if(x<no->dd){
         no->esq=inserirRecArvore(x, no->esq);
     }
     return no;
 }
 
 void inserirArvore(int x, Arvore *a){
-    return inserirRecArvore(x, a->raiz)
+    inserirRecArvore(x, a->raiz);
 }
 
 

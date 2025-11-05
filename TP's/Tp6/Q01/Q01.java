@@ -6,6 +6,7 @@ import java.util.Scanner;
 import java.io.InputStreamReader;
 import java.io.FileInputStream;
 
+//Class Game
 class Game {
     private int id;
     private String name;
@@ -44,7 +45,7 @@ class Game {
         this.tags = tags;
     }
 
-    // Getters (pegar valores dos atributos)
+    // Getters 
     public int getId() {
         return id;
     }
@@ -101,7 +102,7 @@ class Game {
         return tags;
     }
 
-    // Setters (mudar valores dos atributos)
+    // Setters 
     public void setId(int id) {
         this.id = id;
     }
@@ -194,53 +195,95 @@ class Game {
     }
 }
 
-//Lista de Games
-class ListaGames{
+// Estrutra da Lista de Games
+class ListaGames {
     public Game[] gameslista;
     public int qtd;
 
-    public ListaGames(int tamanho){
-        this.gameslista= new Game[tamanho];
-        qtd=0;
+    public ListaGames() {
+        this(0);
     }
 
-    public void inserirInicio(Game g){
-        if(qtd>=gameslista.length){
-            System.out.println("Erro, array cheio");
-            return;
+    public ListaGames(int tamanho) {
+        this.gameslista = new Game[tamanho];
+        qtd = 0;
+    }
+
+    public void inserirInicio(Game g) throws Exception {
+        if (qtd >= gameslista.length) {
+            throw new Exception("Erro!");
         }
-        for(int i=qtd; i>0; i--){
-            gameslista[i]=gameslista[i-1];
+        for (int i = qtd; i > 0; i--) {
+            gameslista[i] = gameslista[i - 1];
         }
-        gameslista[0]=g;
+        gameslista[0] = g;
         qtd++;
     }
 
-    public void inserirFim(Game g){
-        if(qtd>=gameslista.length){
-            System.out.println("Erro, array cheio");
-            return;
+    public void inserirFim(Game g) throws Exception {
+        if (qtd >= gameslista.length) {
+            throw new Exception("Erro!");
         }
-        gameslista[qtd]=g;
+        gameslista[qtd] = g;
         qtd++;
     }
 
-    public void inserir(Game g, int pos){
-        if(qtd>=gameslista.length|| pos<0 || pos>gameslista.length){
-            System.out.println("Erro, array cheio");
-            return;
-        }else if(pos==0){
+    public void inserir(Game g, int pos) throws Exception {
+        if (qtd >= gameslista.length || pos < 0 || pos > qtd) {
+            throw new Exception("Erro!");
+        } else if (pos == 0) {
             inserirInicio(g);
-        }else{
-            
+        } else if (pos == qtd) {
+            inserirFim(g);
+        } else {
+            for (int i = qtd; i > pos; i--) {
+                gameslista[i] = gameslista[i - 1];
+            }
+            gameslista[pos] = g;
+            qtd++;
         }
     }
+
+    public Game removerInicio() throws Exception {
+        if (qtd == 0) {
+            throw new Exception("Erro!");
+        } else {
+            Game remov = gameslista[0];
+            qtd--;
+
+            for (int i = 0; i < qtd; i++) {
+                gameslista[i] = gameslista[i + 1];
+            }
+
+            return remov;
+        }
+    }
+
+    public Game removerFim() throws Exception {
+        if (qtd == 0) {
+            throw new Exception("Erro!");
+        }
+        return gameslista[--qtd];
+    }
+
+    public Game remover(int pos) throws Exception {
+        if (qtd == 0 || pos < 0 || pos >= qtd) {
+            throw new Exception("Erro!");
+        }
+        Game resp = gameslista[pos];
+        qtd--;
+        for (int i = pos; i < qtd; i++) {
+            gameslista[i] = gameslista[i + 1];
+        }
+        return resp;
+    }
+
 }
 
 // Classe principal do programa
 public class Q01 {
 
-    // Arruma a data do CSV e transforma pro formato dd/MM/yyyy
+    // Arruma a data do CSV e transforma pro formato dd/mm/yyyy
     public static String formatarData(String dataCsv) {
         String dataLimpa = dataCsv.replace("\"", "").trim();
         String[] partes = dataLimpa.split(" ");
@@ -348,87 +391,8 @@ public class Q01 {
                 generos, tags);
     }
 
-    // Metodo para comparar dois jogos pelo nome
-    public static int compararNome(Game g1, Game g2) {
-        String s1 = g1.getName();
-        String s2 = g2.getName();
-        s1 = s1.toLowerCase();
-        s2 = s2.toLowerCase();
-        for (int i = 0; i < s1.length() && i < s2.length(); i++) {
-            if (s1.charAt(i) < s2.charAt(i)) {
-                return -1;
-            } else if (s1.charAt(i) > s2.charAt(i)) {
-                return 1;
-            }
-        }
-        return 0;
-    }
-
-    // Metodo para ordenar o array de jogos pelo nome
-    public static void ordenarNome(Game[] g) {
-        int n = 0;
-        while (n < g.length && g[n] != null){
-            n++;
-        }
-
-        for (int i = 0; i < n; i++) {
-            int menor = i;
-            for (int j = i + 1; j < n; j++) {
-                int k = compararNome(g[j], g[menor]);
-                if (k < 0)
-                    menor = j;
-            }
-            Game temp = g[i];
-            g[i] = g[menor];
-            g[menor] = temp;
-        }
-    }
-
-    // Metodo para comparar nome
-    public static int compararNomeBusca(Game g, String nomeBusca) {
-        String s1 = g.getName();
-        String s2 = nomeBusca;
-        s1 = s1.toLowerCase();
-        s2 = s2.toLowerCase();
-        for (int i = 0; i < s1.length() && i < s2.length(); i++) {
-            if (s1.charAt(i) < s2.charAt(i)) {
-                return -1;
-            } else if (s1.charAt(i) > s2.charAt(i)) {
-                return 1;
-            }
-        }
-        return 0;
-    }
-
-    public static int comparacoes = 0;
-
-    // Metodo para busca binaria pelo nome
-    public static int buscaBinariaNome(Game[] g, String nomeBusca) {
-        int n = 0;
-        while (n < g.length && g[n] != null)
-            n++;
-
-        int esquerda = 0;
-        int direita = n - 1;
-
-        while (esquerda <= direita) {
-            int meio = (esquerda + direita) / 2;
-            int comparacao = compararNomeBusca(g[meio], nomeBusca);
-            comparacoes++;
-
-            if (comparacao == 0) {
-                return 0; // encontrado
-            } else if (comparacao < 0) {
-                esquerda = meio + 1;
-            } else {
-                direita = meio - 1;
-            }
-        }
-        return -1; // não encontrado
-    }
-
-    // Função principal do programa (lê, armazena e busca os jogos)
-    public static void main(String[] args) {
+    // Função principal do programa que lê, armazena e busca os jogos
+    public static void main(String[] args) throws Exception {
         String caminhoArquivo = "/tmp/games.csv";
         int totalJogos = 0;
 
@@ -460,10 +424,9 @@ public class Q01 {
         } catch (IOException e) {
         }
 
-        // Faz a busca dos jogos pelo id e salva eles em um novo array de jogos
-        Game[] GamesOrdenados = new Game[totalJogos];
+        // Faz a busca dos jogos pelo id e salva eles dentro da lista
+        ListaGames lista = new ListaGames(totalJogos);
         Scanner entrada = new Scanner(System.in);
-        int count = 0;
         while (entrada.hasNextLine()) {
             String linhaEntrada = entrada.nextLine();
 
@@ -479,41 +442,89 @@ public class Q01 {
                 int idBusca = Integer.parseInt(linhaEntrada);
                 for (int k = 0; k < games.length; k++) {
                     if (games[k] != null && games[k].getId() == idBusca) {
-                        GamesOrdenados[count] = games[k];
-                        count++;
+                        lista.inserirFim(games[k]);
                         break;
                     }
                 }
             } catch (NumberFormatException e) {
-                // ignora entradas inválidas
+                System.out.println("Erro");
             }
         }
-        // Ordena o array de jogos pelo nome
-        ordenarNome(GamesOrdenados);
 
-        // Faz a Busca Binaria dos jogos pelo nome e imprime os resultados
-        long inicio = System.currentTimeMillis();
-        while (entrada.hasNextLine()) {
-            String nomeBusca = entrada.nextLine();
+        //Variaveis para tratamento dos casos de entrada
+        int iD;
+        int pos;
+        int op = entrada.nextInt();
+        
+        //Looping para tratar a segunda parte da entrada
+        while (op > 0) {
+            String comando = entrada.next();
+            switch (comando) {
 
-            if (nomeBusca.trim().isEmpty()) {
-                continue;
+                case "II":
+
+                    iD = entrada.nextInt();
+                    for (int k = 0; k < games.length; k++) {
+                        if (games[k] != null && games[k].getId() == iD) {
+                            lista.inserirInicio(games[k]);
+                            break;
+                        }
+                    }
+                    break;
+
+                case "IF":
+
+                    iD = entrada.nextInt();
+                    for (int k = 0; k < games.length; k++) {
+                        if (games[k] != null && games[k].getId() == iD) {
+                            lista.inserirFim(games[k]);
+                            break;
+                        }
+                    }
+                    break;
+
+                case "I*":
+
+                    pos = entrada.nextInt();
+                    iD = entrada.nextInt();
+                    for (int k = 0; k < games.length; k++) {
+                        if (games[k] != null && games[k].getId() == iD) {
+                            lista.inserir(games[k], pos);
+                            break;
+                        }
+                    }
+                    break;
+
+                //Os metodos de remoção ja imprimem a saida no modelo pedido
+                case "R*":
+
+                    pos = entrada.nextInt();
+                    Game tmp = lista.remover(pos);
+                    System.out.println("(R) " + tmp.getName());
+                    break;
+
+                case "RF":
+
+                    Game rf = lista.removerFim();
+                    System.out.println("(R) " + rf.getName());
+                    break;
+
+                case "RI":
+
+                    Game ri = lista.removerInicio();
+                    System.out.println("(R) " + ri.getName());
+                    break;
+
+                default:
+                    break;
             }
-
-            if (nomeBusca.equalsIgnoreCase("FIM")) {
-                break;
-            }
-
-            // Faz a busca binária pelo nome
-            int resultado = buscaBinariaNome(GamesOrdenados, nomeBusca);
-            if (resultado != -1) {
-                System.out.println(" SIM");
-            } else {
-                System.out.println(" NAO");
-            }
+            op--;
         }
-        long fim = System.currentTimeMillis();
-        long tempo = fim - inicio;
+
+        //Looping para impreção dos jogos dentro da lista
+        for (int idx = 0; idx < lista.qtd; idx++) {
+            System.out.println("["+idx+"] "+lista.gameslista[idx].toString());
+        }
 
         entrada.close();
 

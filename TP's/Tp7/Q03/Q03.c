@@ -279,72 +279,157 @@ void freeGame(Game* g) {
     freeLista(&g->tags, &g->tagsCount);
 }
 
-//Struct da Celula que armazena o jogo
-typedef struct Celula{
-    struct Celula *prox;
+//Struct do No que armazena o jogo
+typedef struct No{
+    struct No *esq, *dir;
     Game *gC;
-}Celula;
+    int nivel;
+}No;
+
+//Struct da AVL
+typedef struct AVL{
+    No *raiz;
+}AVL;
+
+//Construtor da AVL
+AVL* newAVL(){
+    AVL *av=(AVL*)malloc(sizeof(AVL));
+    av->raiz=NULL;
+    return av; 
+}
 
 //Construtor da Celula
-Celula * newCelula(Game *g){
-    Celula *c=(Celula*)malloc(sizeof(Celula));
-    c->gC=g;
-    c->prox=NULL;
-    return c;
+No * newNo(Game *g){
+    No *no=(No*)malloc(sizeof(No));
+    no->gC=g;
+    no->esq=no->dir=NULL;
+    no->nivel=1;
+    return no;
 }
 
-//Struct da Pilha 
-typedef struct Pilha{
-    Celula *topo;
-}Pilha;
-
-//Construtor da Pilha
-Pilha *newPilha(){
-    Pilha *p=(Pilha*)malloc(sizeof(Pilha));
-    p->topo=NULL;
-    return p;
+// Retorna o nível de um nó
+int getNivel(No* no) {
+    return (no == NULL) ? 0 : no->nivel;
 }
 
-void inserir(Game *g, Pilha *p){
-    Celula *c=newCelula(g);
-    c->prox=p->topo;
-    p->topo=c;
-    c=NULL;
-}
-
-Game* remover(Pilha *p){
-    if (p == NULL || p->topo == NULL) return NULL; // pilha vazia
-    Celula *c=p->topo;
-    Game *tmp=c->gC;
-    p->topo=p->topo->prox;
-    c->prox=NULL;
-    free(c);
-    return tmp;
-}
-
-//Função que já printa e mostra o jogo na pilha de acordo com a saída no verde
-void mostrarBaseRec(Celula *i, int *idx){
-    if (!i) return;
-    mostrarBaseRec(i->prox, idx);   
-    printf("[%d] ", (*idx)++);
-    printGame(i->gC);
-}
-void mostrarPilha(Pilha *p){
-    int idx = 0;
-    mostrarBaseRec(p->topo, &idx);  
-}
-//Função para liberar a pilha 
-void liberarPilha(Pilha *p){
-    if (!p) return;
-    Celula *i = p->topo;
-    while (i){
-        Celula *prox = i->prox;
-        free(i);
-        i = prox;
+//Atualiza o nível de um nó
+void setNivel(No* no) {
+    if (no != NULL) {
+        int nivelEsq = getNivel(no->esq);
+        int nivelDir = getNivel(no->dir);
+        no->nivel = 1 + (nivelEsq > nivelDir ? nivelEsq : nivelDir);
     }
-    free(p);
 }
 
+//Função de rotação para direita
+No* rotacionarDir(No* no) {
+    No* u  = no->esq;     // filho à esquerda
+    No* t2 = u->dir;      // subárvore à direita de u
+
+    // Rotação
+    u->dir = no;
+    no->esq = t2;
+
+    // Atualiza níveis de baixo pra cima
+    setNivel(no);
+    setNivel(u);
+
+    // u vira a nova raiz da subárvore
+    return u;
+}
+
+//Função para rotacionar para esquerda
+No* rotacionarEsq(No* no) {
+    No* u  = no->dir;     // filho à direita
+    No* t2 = u->esq;      // subárvore à esquerda de u
+
+    // Rotação
+    u->esq = no;
+    no->dir = t2;
+
+    // Atualiza níveis 
+    setNivel(no);
+    setNivel(u);
+
+    // u vira a nova raiz da subárvore
+    return u;
+}
+
+//Funçao Balancear da Arvore AVL
+No* balancear( No*i ){
+    if(i!=NULL){
+        int fator= getNivel(i->dir)-getNivel(i->esq);
+        if(abs(fator)<=1){
+            setNivel(i);
+        }else if(fator==2){
+            int fatorFilhoDir=getNivel(i->dir->dir)-getNivel(i->dir->esq);
+            if(fatorFilhoDir==-1){
+                i->dir=rotacionarDir(i->dir);
+            }
+            i=rotacionarEsq(i);
+        }else if(fator==-2){
+            int fatorFilhoEsq=getNivel(i->esq->dir)-getNivel(i->esq->esq);
+            if(fatorFilhoEsq==1){
+                i->esq=rotacionarEsq(i->esq);
+            }
+            i=rotacionarDir(i);
+        }else{
+
+        }
+    }
+    return i;
+}
+
+
+//InserirRec na arvore AVL
+No* inserirRec(No *i, Game *g){
+    if(i==NULL){
+        i= newNo(g);
+    } 
+    char* nmInserir=g->name;
+    int cmp= strcmp(nmInserir,i->gC->name);
+    if(cmp>0){
+        i->dir=inserirRec(i->dir, g);
+    }else if(cmp<0){
+        i->esq=inserirRec(i->esq, g);
+    }else{
+        
+    }
+    return balancear(i);
+}
+
+//Inserir na arvore AVL
+void inserir(AVL *a,Game *g){
+    a->raiz=inserirRec(a->raiz, g);
+}
+
+
+//Pesquisar Recursivo
+bool pesquisarRec(char *nm, No *i){
+    bool resp=false;
+    if(i!=NULL){
+        comparacoes++;
+        int cmp=strcmp(nm, i->gC->name);
+        
+        if(cmp==0){
+            resp=true;
+        }else if(cmp>0){
+            printf("dir ");
+            resp=pesquisarRec(nm, i->dir);
+        }else{
+            printf("esq ");
+            resp=pesquisarRec(nm, i->esq);
+        }
+    }
+    return resp;
+}
+//Metodos de pesquisa da AVL de Games
+bool pesquisar(char* nm, AVL *a){
+    printf("raiz ");                  
+    bool resp = pesquisarRec(nm, a->raiz);
+    printf(resp ? "SIM" : "NAO");     
+    return resp;
+}
 
 int main() {
     setlocale(LC_NUMERIC, "C"); //usa ponto em float
@@ -379,8 +464,8 @@ int main() {
     }
     fclose(arq);
 
-    //Lê e busca jogos pelo ID e armazena em um novo array de jogosOrdenados
-    Pilha *pilha = newPilha();
+    //Lê e busca jogos pelo ID e armazena em uma arvore do tipo AVL
+    AVL* arvoreGame= newAVL();
     char entrada[TAMMAXCAMPO];
     
     while (fgets(entrada, sizeof(entrada), stdin)) {
@@ -392,58 +477,48 @@ int main() {
         for (int k = 0; k < i; k++) {
             if (jogos[k].id == id) {
                 
-                inserir(&jogos[k], pilha); 
+                inserir(arvoreGame, &jogos[k]); 
                 break; 
             }
         }
     }
 
-
-    //Processo de leitura da segunda parte
-    int op;
-    char linhaComando[150];
+    //Processo da Segunda Parte do problema 
+    char nmBusca[200];
     
-    // Lê o número de operações 
-    scanf("%d", &op);
+    clock_t inicio = clock();
     
-   
-    int ch; 
-    while ((ch = getchar()) != '\n' && ch != EOF);
+    // Leitura linha a linha 
+    while (fgets(nmBusca, sizeof(nmBusca), stdin) != NULL) {
+        // REMOVE \n e \r do fim
+        nmBusca[strcspn(nmBusca, "\r\n")] = '\0';
 
-    // Processa os comandos linha a linha
-    for (int c = 0; c < op; c++) {
-        if (!fgets(linhaComando, sizeof(linhaComando), stdin)) break;
+        if (nmBusca[0] == '\0') continue;
 
-        // tira \n e espaços das pontas
-        int n = (int)strcspn(linhaComando, "\r\n");
-        linhaComando[n] = '\0';
-        // avança espaços iniciais
-        char *cmd = linhaComando;
-        while (*cmd == ' ') cmd++;
+        if (strcmp(nmBusca, "FIM") == 0) break;
 
-        if (*cmd == 'I') {                 
-            cmd++;                         
-            while (*cmd == ' ') cmd++;  // pula espaços
-            int id = atoi(cmd);
-
-            for (int k = 0; k < i; k++) {
-                if (jogos[k].id == id) { 
-                    inserir(&jogos[k], pilha); break; 
-                }
-            }
-
-        } else if (*cmd == 'R') {          
-            Game *rem = remover(pilha);
-            if (rem) printf("(R) %s\n", rem->name);
         
-        }
+        printf("%s: ", nmBusca);
+        pesquisar(nmBusca, arvoreGame);
+        printf("\n");
     }
 
-    //Chamada de metodo para impressão dos jogos dentro da pilha
-    mostrarPilha(pilha);
+    // Marca tempo final
+    clock_t fim = clock();
 
-    //Libera memória do array e da pilha de jogos
-    liberarPilha(pilha);
+    // Converte para milissegundos
+    long tempo = (long)((fim - inicio) * 1000 / CLOCKS_PER_SEC);
+
+    // Criação do arquivo de log
+    FILE *log = fopen("885013_arvoreBinaria.txt", "w");
+    if (log == NULL) {
+        perror("Erro ao criar arquivo de log");
+        return 1;
+    }
+
+    fprintf(log, "885013\t%ld\t%d",tempo, comparacoes);
+
+    fclose(log);
 
     for (int k = 0; k < i; k++){
         freeGame(&jogos[k]);

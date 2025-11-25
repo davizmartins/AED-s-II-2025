@@ -193,54 +193,199 @@ class Game {
     }
 }
 
-
 // Estrutra da Arvore de Games
 // Estrutura do No da Arvore de Games
 class No {
     public No esq, dir;
     public Game gm;
+    public boolean cor;
 
     public No(Game g) {
-        this.esq = this.dir = null;
+        this(g, false);
+    }
+
+    public No(Game g, boolean cor) {
         this.gm = g;
+        this.cor = cor;
+        this.esq = this.dir = null;
     }
 }
 
 // Arvore
-class AVB {
+class ArvoreRN {
     public No raiz;
     private int comparacoes = 0;
 
-    public AVB() {
+    public ArvoreRN() {
         this.raiz = null;
     }
 
-    //função para conseguir obeter o numero de comparaçoes final
-    public int getComparacoes(){
+    // Função para conseguir obeter o numero de comparaçoes final
+    public int getComparacoes() {
         return comparacoes;
     }
 
-    //função para inserção na arvore
+    // Função para inserção na arvoreRN tratando os casos iniciais
     public void inserir(Game g) {
-        this.raiz = inserirRec(raiz, g);
+        // se a arvore estiver vazia
+        if (raiz == null) {
+            raiz = new No(g);
+
+            // se a arvore tiver só a raiz
+        } else if (raiz.esq == null && raiz.dir == null) {
+            int cmp = g.getName().compareTo(raiz.gm.getName());
+            if (cmp > 0) {
+                raiz.dir = new No(g);
+            } else {
+                raiz.esq = new No(g);
+            }
+            // se a arvore tiver so a raiz e um filho a dir
+        } else if (raiz.esq == null) {
+            int cmp = g.getName().compareTo(raiz.gm.getName());
+            int cmp2 = g.getName().compareTo(raiz.dir.gm.getName());
+            if (cmp < 0) {
+                raiz.esq = new No(g);
+            } else if (cmp2 < 0) {
+                // ja insere e faz a rotação dupla(DIR-ESQ)
+                raiz.esq = new No(raiz.gm);
+                raiz.gm = g;
+            } else {
+                // ja insere e faz a rotação para esq
+                raiz.esq = new No(raiz.gm);
+                raiz.gm = raiz.dir.gm;
+                raiz.dir.gm = g;
+            }
+            raiz.esq.cor = raiz.dir.cor = false;
+        } else if (raiz.dir == null) {
+            int cmp = g.getName().compareTo(raiz.gm.getName());
+            int cmp2 = g.getName().compareTo(raiz.esq.gm.getName());
+            if (cmp > 0) {
+                raiz.dir = new No(g);
+            } else if (cmp2 > 0) {
+                raiz.dir = new No(raiz.gm);
+                raiz.gm = g;
+            } else {
+                raiz.dir = new No(raiz.gm);
+                raiz.gm = raiz.esq.gm;
+                raiz.esq.gm = g;
+            }
+            raiz.esq.cor = raiz.dir.cor = false;
+        } else {
+            inserir2(g, null, null, null, raiz);
+        }
+        raiz.cor = false;
     }
 
-    public No inserirRec(No i, Game g) {
+    // Função para inserir na arvoreRN de maneira padrão
+    public void inserir2(Game g, No bisavo, No avo, No pai, No i) {
+
         if (i == null) {
-            i= new No(g);
-        }
+            int cmp = g.getName().compareTo(pai.gm.getName());
+            comparacoes++;
 
-        String nmInserir = g.getName();
-        int cmp = nmInserir.compareTo(i.gm.getName());
+            if (cmp < 0) {
+                i = pai.esq = new No(g, true); // filho à esquerda, vermelho
+            } else {
+                i = pai.dir = new No(g, true); // filho à direita, vermelho
+            }
 
-        if (cmp > 0) {
-            i.dir = inserirRec(i.dir, g);
-            i.esq = inserirRec(i.esq, g);
-        } else if (cmp < 0) {
+            if (pai.cor == true) {
+                balancear(bisavo, avo, pai, i);
+            }
+
         } else {
 
+            if (i.esq != null && i.dir != null && i.esq.cor == true && i.dir.cor == true) {
+                i.cor = true;
+                i.esq.cor = i.dir.cor = false;
+
+                if (i == raiz) {
+                    i.cor = false;
+                } else if (pai.cor == true) {
+                    balancear(bisavo, avo, pai, i);
+                }
+            }
+
+            int cmp2 = g.getName().compareTo(i.gm.getName());
+            comparacoes++;
+
+            if (cmp2 < 0) {
+                inserir2(g, avo, pai, i, i.esq);
+            } else if (cmp2 > 0) {
+                inserir2(g, avo, pai, i, i.dir);
+            } else {
+            
+            }
         }
-        return i;
+    }
+
+    // Função de balanceamento da ArvoreRN
+    private void balancear(No bisavo, No avo, No pai, No i) {
+        int cmp = pai.gm.getName().compareTo(avo.gm.getName());
+        int cmp2 = pai.gm.getName().compareTo(i.gm.getName());
+        comparacoes += 2;
+        if (pai.cor == true) {
+            if (cmp > 0) {
+                if (cmp2 < 0) {
+                    avo = rotacaoEsq(avo);
+                } else {
+                    avo = rotacaoDirEsq(avo);
+                }
+            } else {
+                if (cmp2 > 0) {
+                    avo = rotacaoDir(avo);
+                } else {
+                    avo = rotacaoEsqDir(avo);
+                }
+            }
+            if (bisavo == null) {
+                raiz = avo;
+            } else if (avo.gm.getName().compareTo(bisavo.gm.getName()) < 0) {
+                comparacoes++;
+                bisavo.esq = avo;
+            } else {
+                comparacoes++;
+                bisavo.dir = avo;
+            }
+            avo.cor = false;
+            if (avo.esq != null)
+                avo.esq.cor = true;
+            if (avo.dir != null)
+                avo.dir.cor = true;
+        }
+    }
+
+    // Funções de Rotação da ArvoreRN
+    private No rotacaoDir(No i) {
+        No iEsq = i.esq; // filho a esquerda
+        No iEsqDir = i.esq.dir; // subarvore a direita de iEsq
+
+        // Rotação
+        iEsq.dir = i;
+        i.esq = iEsqDir;
+
+        return iEsq;
+    }
+
+    private No rotacaoEsq(No i) {
+        No iDir = i.dir; // filho a direita
+        No iDirEsq = iDir.esq; // subarvore a esquerda de iDir
+
+        // Rotação
+        iDir.esq = i;
+        i.dir = iDirEsq;
+
+        return iDir;
+    }
+
+    private No rotacaoEsqDir(No i) {
+        i.esq = rotacaoEsq(i.esq);
+        return rotacaoDir(i);
+    }
+
+    private No rotacaoDirEsq(No i) {
+        i.dir = rotacaoDir(i.dir);
+        return rotacaoEsq(i);
     }
 
     // Função de pesquisa
@@ -273,8 +418,7 @@ class AVB {
 }
 
 // Classe principal do programa
-
-public class Q01 {
+public class Q04 {
     // Arruma a data do CSV e transforma pro formato dd/mm/yyyy
     public static String formatarData(String dataCsv) {
         String dataLimpa = dataCsv.replace("\"", "").trim();
@@ -416,8 +560,8 @@ public class Q01 {
         } catch (IOException e) {
         }
 
-        // Faz a busca dos jogos pelo id e salva eles dentro da Arvore
-        AVB arvoreGame = new AVB();
+        // Faz a busca dos jogos pelo id e salva eles dentro da ArvoreRn
+        ArvoreRN arvoreGame = new ArvoreRN();
         Scanner entrada = new Scanner(System.in);
         while (entrada.hasNextLine()) {
             String linhaEntrada = entrada.nextLine();
@@ -459,7 +603,7 @@ public class Q01 {
 
         // Criação do arquivo log
         try {
-            java.io.FileWriter log = new java.io.FileWriter("885013_arvoreBinaria.txt");
+            java.io.FileWriter log = new java.io.FileWriter("885013_arvoreAlviNegra.txt");
             log.write("885013" + "\t" + tempo + "\t" + arvoreGame.getComparacoes());
             log.close();
         } catch (IOException e) {

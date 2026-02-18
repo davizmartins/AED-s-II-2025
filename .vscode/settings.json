@@ -1,5 +1,10 @@
 {
     "files.associations": {
         "Q04.C": "cpp"
-    }
+    },
+    "java.project.sourcePaths": [
+        "TP's\\Tp8\\Q01",
+        "TP's\\Tp8\\Q02"
+    ],
+    "java.project.referencedLibraries": []
 }

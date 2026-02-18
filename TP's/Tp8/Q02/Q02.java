@@ -194,72 +194,72 @@ class Game {
 }
 
 // Classe Hash com Reserva
-class hashReserva {
-    public int tam1, tam2, tam;
-    public int reserva;
+class hashRehash {
+    public int tam1;
     public Game[] tabela;
     public Game NULO = null;
     public  int comparacoes;
 
     //Função para obeter posição do jogo na Hash
     public int hs(String s) {
-        return valorASC(s) % tam1;
+        return (valorASC(s))% tam1;
+    }
+    
+    //Função para obeter posição Rehash do jogo na Hash
+    public int rhs(String s) {
+        return (valorASC(s+1))% tam1;
     }
 
     public int getcomparacoes(){
         return this.comparacoes;
     }
 
-    public hashReserva() {
-        this(21, 9);
+    public hashRehash() {
+        this(21);
     }
 
     //Construtor da Hash
-    public hashReserva(int m1, int m2) {
-        this.tam1 = m1;
-        this.tam2 = m2;
-        this.tam = m1 + m2;
-        this.tabela = new Game[this.tam];
-        for (int i = 0; i < m1; i++) {
+    public hashRehash(int tam) {
+        this.tam1 = tam;
+        this.tabela = new Game[this.tam1];
+        for (int i = 0; i < tam; i++) {
             tabela[i] = NULO;
         }
-        this.reserva = 0;
         comparacoes=0;
     }
 
     public void inserir(Game g) {
         if (g != null) {
             int pos = hs(g.getName());
+            int posR = rhs(g.getName());
             comparacoes++;
             if (tabela[pos] == NULO) {
                 tabela[pos] = g;
             } else {
-                
                 comparacoes++;
-                if (reserva < tam2) {
-
-                    tabela[tam1 + reserva] = g;
-                    reserva++;
+                if(tabela[posR]==NULO){
+                    tabela[posR] = g;
                 }
             }
         }
     }
 
+
+
     public boolean pesquisar(String g) {
         boolean resp = false;
         int pos = hs(g);
+        int posR=rhs(g);
         comparacoes ++;
         if (tabela[pos].getName().equals(g)) {
             resp = true;
         } else {
             comparacoes++;
             if (tabela[pos] != NULO) {
-                for (int i = 0; i < reserva; i++) {
-                    comparacoes++;
-                    if (tabela[tam1 + i].getName().equals(g)) {
-                        resp = true;
-                        i = reserva;
-                    }
+                
+                comparacoes++;
+                if(tabela[posR].getName().equals(g)){
+                    resp=true;
                 }
             }
         }
@@ -284,7 +284,7 @@ class hashReserva {
 }
 
 // Classe principal do programa
-public class q01 {
+public class Q02 {
 
     //Funçao de Logica pra saida 
     public static void printarSaida(String nm, boolean resp, int p){
@@ -406,7 +406,7 @@ public class q01 {
 
     // Função principal do programa que lê, armazena e busca os jogos
     public static void main(String[] args) throws Exception {
-        String caminhoArquivo = "/tmp/games.csv";
+        String caminhoArquivo = "games.csv";
         int totalJogos = 0;
 
         // Conta quantas linhas tem no arquivo
@@ -483,7 +483,7 @@ public class q01 {
 
         // Criação do arquivo log
         try {
-            java.io.FileWriter log = new java.io.FileWriter("885013_hashReserva.txt");
+            java.io.FileWriter log = new java.io.FileWriter("885013_hashRehash.txt");
             log.write("885013" + "\t" + tempo + "\t"+hashGames.getcomparacoes());
             log.close();
         } catch (IOException e) {

@@ -8,7 +8,6 @@
 <h3>1. Estruturas de Dados Avançadas</h3>
 <ul>
     <li><b>Árvores:</b> Implementações e análises de árvores binárias de busca (BST) e balanceadas (AVL, B-trees).</li>
-    <li><b>Grafos:</b> Representações (matriz de adjacências, listas de adjacências) e aplicações.</li>
     <li><b>Tabelas Hash:</b> Explicação sobre o conceito de espalhamento (hashing) e métodos de tratamento de colisões.</li>
 </ul>
 
